@@ -18,6 +18,7 @@ on:
       - 'lib/**'
       - 'android/**'
       - 'pubspec.yaml'
+      - '.github/workflows/build-and-sign.yml'
 
 permissions:
   contents: write
@@ -38,51 +39,68 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           UPSTREAM_JSON=$(curl -s https://api.github.com/repos/edde746/plezy/releases/latest)
-          UPSTREAM_TAG=$(echo "$UPSTREAM_JSON" | jq -r '.tag_name')
-          UPSTREAM_BODY=$(echo "$UPSTREAM_JSON" | jq -r '.body')
+          UPSTREAM_TAG=$(echo "$UPSTREAM_JSON" | jq -r '.tag_name // empty')
+          UPSTREAM_BODY=$(echo "$UPSTREAM_JSON" | jq -r '.body // empty')
           echo "tag=$UPSTREAM_TAG" >> "$GITHUB_OUTPUT"
           echo "$UPSTREAM_BODY" > /tmp/upstream_notes.md
           echo "Latest upstream release tag: $UPSTREAM_TAG"
 
-      - name: Check if release already built in fork
+      - name: Determine Release Tag & Check Status
         id: check_release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          TAG="${{ steps.upstream.outputs.tag }}"
+          LOCAL_VERSION=$(grep '^version:' pubspec.yaml | awk '{print $2}' | cut -d'+' -f1)
+          FORK_TAG="v$LOCAL_VERSION"
+          echo "tag=$FORK_TAG" >> "$GITHUB_OUTPUT"
+          echo "Target Release Tag: $FORK_TAG"
+
           if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.force_build }}" = "true" ]; then
+            echo "Build forced via workflow_dispatch"
             echo "should_build=true" >> "$GITHUB_OUTPUT"
-          elif gh release view "$TAG" &>/dev/null; then
-            echo "Release $TAG already exists in this fork. Skipping."
-            echo "should_build=false" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.event_name }}" = "push" ]; then
+            echo "Build triggered via push to main"
+            echo "should_build=true" >> "$GITHUB_OUTPUT"
+          elif gh release view "$FORK_TAG" &>/dev/null; then
+            echo "Release $FORK_TAG already exists in this fork. Checking upstream..."
+            UPSTREAM_TAG="${{ steps.upstream.outputs.tag }}"
+            if [ -n "$UPSTREAM_TAG" ] && [ "$UPSTREAM_TAG" != "$LOCAL_VERSION" ] && [ "$UPSTREAM_TAG" != "${LOCAL_VERSION#v}" ]; then
+              echo "Upstream has newer release $UPSTREAM_TAG. Will build."
+              echo "should_build=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "Release is up to date. Skipping."
+              echo "should_build=false" >> "$GITHUB_OUTPUT"
+            fi
           else
-            echo "New release $TAG detected. Proceeding to build."
+            echo "Release $FORK_TAG does not exist yet. Building."
             echo "should_build=true" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Merge Upstream Release into Fork
-        if: steps.check_release.outputs.should_build == 'true'
+        if: steps.check_release.outputs.should_build == 'true' && github.event_name == 'schedule'
         run: |
           git config user.name "GitHub Actions Bot"
           git config user.email "actions@github.com"
           git remote add upstream https://github.com/edde746/plezy.git 2>/dev/null || true
           git fetch upstream --tags
           TAG="${{ steps.upstream.outputs.tag }}"
-          # Merge upstream release tag keeping our custom theme and OTA changes intact
-          git merge "tags/$TAG" -X ours -m "chore(sync): auto-merge upstream release $TAG" || true
+          if [ -n "$TAG" ] && [ "$TAG" != "null" ]; then
+            echo "Merging upstream release $TAG..."
+            git merge "tags/$TAG" -X ours -m "chore(sync): auto-merge upstream release $TAG" || true
+          fi
 
-      - name: Setup Java
+      - name: Setup Java 21
         if: steps.check_release.outputs.should_build == 'true'
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '17'
+          java-version: '21'
 
       - name: Setup Flutter
         if: steps.check_release.outputs.should_build == 'true'
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.47.0'
+          flutter-version: '3.47.1'
           channel: 'stable'
           cache: true
 
@@ -95,7 +113,7 @@ jobs:
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
         run: |
-          echo "$KEYSTORE_BASE64" | base64 --decode > android/app/morphe.keystore
+          echo "$KEYSTORE_BASE64" | base64 --decode > android/app/morphe.p12
 
       - name: Build Split APKs
         if: steps.check_release.outputs.should_build == 'true'
@@ -120,7 +138,8 @@ jobs:
             out="release-apks/plezy-${arch}.apk"
             echo "Signing $apk -> $out"
             
-            $APKSIGNER sign --ks android/app/morphe.keystore \
+            $APKSIGNER sign --ks android/app/morphe.p12 \
+              --ks-type PKCS12 \
               --ks-pass "pass:$KEYSTORE_PASSWORD" \
               --ks-key-alias "$KEY_ALIAS" \
               --key-pass "pass:$KEY_PASSWORD" \
@@ -135,12 +154,24 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          TAG="${{ steps.upstream.outputs.tag }}"
-          NOTES=$(cat /tmp/upstream_notes.md)
+          TAG="${{ steps.check_release.outputs.tag }}"
+          UPSTREAM_TAG="${{ steps.upstream.outputs.tag }}"
+          NOTES=$(cat /tmp/upstream_notes.md 2>/dev/null || echo "Custom automated build of Plezy for Android TV / NVIDIA Shield TV")
           
-          gh release create "$TAG" release-apks/*.apk \
-            --title "Plezy $TAG (Morphe Signed for Shield TV)" \
-            --notes "Custom build of Plezy $TAG signed with Morphe.keystore for Shield TV in-place OTA updates.
+          if gh release view "$TAG" &>/dev/null; then
+            echo "Release $TAG exists. Updating APK assets..."
+            gh release upload "$TAG" release-apks/*.apk --clobber
+          else
+            echo "Creating release $TAG..."
+            gh release create "$TAG" release-apks/*.apk \
+              --title "Plezy $TAG (Morphe Signed for Shield TV)" \
+              --notes "Custom build of Plezy $TAG (based on upstream $UPSTREAM_TAG) signed with Morphe.keystore for Shield TV in-place OTA updates.
+              
+            ### Custom Fork Enhancements:
+            - **Moonlight Theme:** Deep OLED night slate (\`#0B132B\` / \`#162234\`) with Moonlight cyan accent (\`#38BDF8\`) and glow halo.
+            - **Material You Dynamic Theme:** Ambient tonal palettes (\`#101418\` / \`#818CF8\`).
+            - **In-Place Shield TV OTA:** Automatic in-app update checks directly downloading signed APKs.
             
-          ### Upstream Notes:
-          $NOTES"
+            ### Upstream Release Notes:
+            $NOTES"
+          fi
