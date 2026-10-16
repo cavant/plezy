@@ -11,7 +11,7 @@ import 'package:device_info_plus/device_info_plus.dart';
 
 class ForkOtaUpdateService {
   // Update this to your GitHub username/repository
-  static const String repoOwner = "TheMagicSalami";
+  static const String repoOwner = "cavant";
   static const String repoName = "plezy";
 
   static String get latestReleaseApiUrl =>
