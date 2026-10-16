@@ -1859,7 +1859,8 @@ class MpvPlayerCore private constructor(
    * natively so Dart's `glsl-shaders` change-list writes (ShaderService,
    * ambient lighting) switch the session live, without a channel contract.
    */
-  private fun isShaderGpuVoAllowed(): Boolean = !hdrDisplayActive && pendingDvProfile == null
+  private fun isShaderGpuVoAllowed(): Boolean =
+    !hdrDisplayActive && !wantsHdrSurface(lastContentColorTransfer) && pendingDvProfile == null
 
   private fun refreshShaderGpuVoRequirement() {
     setGpuVoRequirement(GpuVoPolicy.REASON_SHADERS, lastGlslShadersNonBlank && isShaderGpuVoAllowed())
@@ -2600,17 +2601,17 @@ class MpvPlayerCore private constructor(
   private fun applyContentColorTransfer(value: String, onComplete: ((Result<Unit>) -> Unit)?) {
     val transfer = value.trim().lowercase()
     lastContentColorTransfer = transfer
-    if (hdrSurfaceDecided) {
-      onComplete?.invoke(Result.success(Unit))
-      return
-    }
-    hdrSurfaceDecided = true
     val wants = wantsHdrSurface(transfer)
     val displayHdr = wants && displayHdrSupported
     // Independent of the GL surface outcome: on the MediaCodec plane the
     // decoder's dataspace carries HDR to the display without a PQ GL surface.
     hdrDisplayActive = displayHdr
     refreshShaderGpuVoRequirement()
+    if (hdrSurfaceDecided) {
+      onComplete?.invoke(Result.success(Unit))
+      return
+    }
+    hdrSurfaceDecided = true
     val outputFormat = if (wants) EglHdrCaps.pqOutputFormat() else null
     if (!wants || !displayHdr || outputFormat == null) {
       if (wants) {

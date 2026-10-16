@@ -138,7 +138,9 @@ extension _VideoPlayerOpenMethods on VideoPlayerScreenState {
     // needsDecoderRefreshAfterDisplaySwitch is how this file distinguishes
     // the two Android backends (true = the mpv core).
     if (!Platform.isAndroid || !player.needsDecoderRefreshAfterDisplaySwitch) return;
-    final transfer = isTranscoding ? null : displayCriteria?.transfer;
+    final transfer = isTranscoding
+        ? null
+        : (displayCriteria?.transfer ?? (displayCriteria?.colorType.isHdr == true ? 'smpte2084' : null));
     await player.setProperty('content-color-transfer', transfer ?? 'unknown');
   }
 
