@@ -347,6 +347,12 @@ class MpvPlayerCore private constructor(
    * [FrameRateManager.clearVideoFrameRate]). */
   @Volatile private var hdrDisplayActive: Boolean = false
 
+  /** Latest `content-color-transfer` announced by Dart before open. */
+  @Volatile private var lastContentColorTransfer: String = "unknown"
+
+  /** Whether `glsl-shaders` currently contains any shader paths. */
+  @Volatile private var lastGlslShadersNonBlank: Boolean = false
+
   /** Read at [initialize], before the app's own display-mode switch:
    * `Display.getHdrCapabilities` answers for the active mode, and a
    * downgraded mode can report none (#2302). */
@@ -872,6 +878,8 @@ class MpvPlayerCore private constructor(
       pendingDvProfile = null
       hdrSurfaceDecided = false
       hdrDisplayActive = false
+      lastContentColorTransfer = "unknown"
+      lastGlslShadersNonBlank = false
       displayHdrSupported = false
       displayDvSupported = false
       hdrSdrConversionMode = "auto"
@@ -1517,6 +1525,7 @@ class MpvPlayerCore private constructor(
   private suspend fun applyDvReshapePolicy(p: MpvPlayer, track: org.json.JSONObject?) {
     val profile = track?.takeIf { it.has("dolby-vision-profile") }?.getLong("dolby-vision-profile")
     pendingDvProfile = profile
+    refreshShaderGpuVoRequirement()
     val routing = dvRouting()
     val mode = routing.conversionMode
     val p5Decoder = GpuVoPolicy.nativeDvDecoder(dvDecoderCandidates, 5L)
@@ -1850,10 +1859,17 @@ class MpvPlayerCore private constructor(
    * natively so Dart's `glsl-shaders` change-list writes (ShaderService,
    * ambient lighting) switch the session live, without a channel contract.
    */
+  private fun isShaderGpuVoAllowed(): Boolean = !hdrDisplayActive && pendingDvProfile == null
+
+  private fun refreshShaderGpuVoRequirement() {
+    setGpuVoRequirement(GpuVoPolicy.REASON_SHADERS, lastGlslShadersNonBlank && isShaderGpuVoAllowed())
+  }
+
   private fun collectShaderState(p: MpvPlayer) {
     scope.launch(start = CoroutineStart.UNDISPATCHED) {
       p.propertyFlow.filterIsInstance<PropertyChange.Str>().filter { it.name == "glsl-shaders" }.collect { change ->
-        setGpuVoRequirement(GpuVoPolicy.REASON_SHADERS, change.value.isNotBlank())
+        lastGlslShadersNonBlank = change.value.isNotBlank()
+        refreshShaderGpuVoRequirement()
       }
     }
   }
@@ -2457,6 +2473,7 @@ class MpvPlayerCore private constructor(
 
   private suspend fun readProperty(name: String): String? {
     if (!isInitialized || disposing || nativeFailure.get() != null) return null
+    if (name == "content-color-transfer") return lastContentColorTransfer
     val reader = propertyReaderOverride
     return try {
       if (reader != null) reader(name) else player?.getString(name)
@@ -2582,6 +2599,7 @@ class MpvPlayerCore private constructor(
    */
   private fun applyContentColorTransfer(value: String, onComplete: ((Result<Unit>) -> Unit)?) {
     val transfer = value.trim().lowercase()
+    lastContentColorTransfer = transfer
     if (hdrSurfaceDecided) {
       onComplete?.invoke(Result.success(Unit))
       return
@@ -2592,6 +2610,7 @@ class MpvPlayerCore private constructor(
     // Independent of the GL surface outcome: on the MediaCodec plane the
     // decoder's dataspace carries HDR to the display without a PQ GL surface.
     hdrDisplayActive = displayHdr
+    refreshShaderGpuVoRequirement()
     val outputFormat = if (wants) EglHdrCaps.pqOutputFormat() else null
     if (!wants || !displayHdr || outputFormat == null) {
       if (wants) {

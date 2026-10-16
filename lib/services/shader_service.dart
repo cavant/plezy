@@ -93,8 +93,11 @@ class ShaderService {
     }
   }
 
-  static bool _skipsOnHdr(ShaderPreset preset) =>
-      preset.type == ShaderPresetType.nvscaler && preset.nvscalerConfig?.autoHdrSkip == true;
+  static bool _skipsOnHdr(ShaderPreset preset) {
+    if (!preset.isEnabled) return false;
+    if (Platform.isAndroid) return true;
+    return preset.type == ShaderPresetType.nvscaler && preset.nvscalerConfig?.autoHdrSkip == true;
+  }
 
   /// Rebuild mpv's chain for [preset]: clear, append its shaders, keep
   /// ambient lighting last.
@@ -136,9 +139,25 @@ class ShaderService {
     }
   }
 
-  /// Check if the current video content is HDR.
+  /// Check if the current video content is HDR or Dolby Vision.
   Future<bool> _isHdrContent() async {
     try {
+      // Pre-open transfer hint set by Dart before loadfile (available before first frame)
+      final announcedTransfer = (await _player.getProperty('content-color-transfer'))?.toLowerCase();
+      if (announcedTransfer != null &&
+          (announcedTransfer.contains('smpte2084') ||
+              announcedTransfer.contains('pq') ||
+              announcedTransfer.contains('arib-std-b67') ||
+              announcedTransfer.contains('hlg'))) {
+        return true;
+      }
+
+      // Check Dolby Vision profile on selected video track
+      final dvProfile = await _player.getProperty('current-tracks/video/dolby-vision-profile');
+      if (dvProfile != null && dvProfile.isNotEmpty) {
+        return true;
+      }
+
       // Check video color matrix for BT.2020 (HDR indicator)
       final colormatrix = await _player.getProperty('video-params/colormatrix');
       if (colormatrix?.contains('bt.2020') == true) {
@@ -153,7 +172,7 @@ class ShaderService {
 
       // Check for HDR transfer characteristics
       final gamma = await _player.getProperty('video-params/gamma');
-      if (gamma?.contains('pq') == true || gamma?.contains('hlg') == true) {
+      if (gamma?.contains('pq') == true || gamma?.contains('hlg') == true || gamma?.contains('smpte2084') == true) {
         return true;
       }
 
