@@ -65,13 +65,15 @@ class ThemeProvider extends ChangeNotifier with DisposableChangeNotifierMixin, W
   /// provider will settle on, instead of guessing from platform brightness
   /// and flashing when the two disagree (#1833).
   static ThemeData darkThemeFor(settings.ThemeMode mode) =>
-      monoTheme(dark: true, oled: mode == settings.ThemeMode.oled);
+      monoTheme(dark: true, oled: mode == settings.ThemeMode.oled, mode: mode);
 
   /// Material equivalent of the app's own [settings.ThemeMode].
   static ThemeMode materialThemeModeFor(settings.ThemeMode mode) => switch (mode) {
     settings.ThemeMode.light => ThemeMode.light,
     settings.ThemeMode.dark => ThemeMode.dark,
     settings.ThemeMode.oled => ThemeMode.dark,
+    settings.ThemeMode.moonlight => ThemeMode.dark,
+    settings.ThemeMode.materialYou => ThemeMode.dark,
     settings.ThemeMode.system => ThemeMode.system,
   };
 
@@ -83,7 +85,10 @@ class ThemeProvider extends ChangeNotifier with DisposableChangeNotifierMixin, W
   /// Whether [mode] resolves to a dark theme when the platform reports [platformBrightness].
   static bool isDarkFor(settings.ThemeMode mode, Brightness platformBrightness) => switch (mode) {
     settings.ThemeMode.light => false,
-    settings.ThemeMode.dark || settings.ThemeMode.oled => true,
+    settings.ThemeMode.dark ||
+    settings.ThemeMode.oled ||
+    settings.ThemeMode.moonlight ||
+    settings.ThemeMode.materialYou => true,
     settings.ThemeMode.system => platformBrightness == Brightness.dark,
   };
 
@@ -142,6 +147,8 @@ class ThemeProvider extends ChangeNotifier with DisposableChangeNotifierMixin, W
     final name = switch (mode) {
       settings.ThemeMode.dark => 'dark',
       settings.ThemeMode.oled => 'oled',
+      settings.ThemeMode.moonlight => 'dark',
+      settings.ThemeMode.materialYou => 'dark',
       settings.ThemeMode.light => 'light',
       settings.ThemeMode.system => 'system',
     };
@@ -156,6 +163,10 @@ class ThemeProvider extends ChangeNotifier with DisposableChangeNotifierMixin, W
         return Symbols.dark_mode_rounded;
       case settings.ThemeMode.oled:
         return Symbols.contrast_rounded;
+      case settings.ThemeMode.moonlight:
+        return Symbols.nightlight_rounded;
+      case settings.ThemeMode.materialYou:
+        return Symbols.palette_rounded;
       case settings.ThemeMode.system:
         return Symbols.brightness_auto_rounded;
     }

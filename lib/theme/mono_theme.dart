@@ -1,51 +1,101 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import '../services/settings_service.dart' as settings;
 import 'gapped_track_shape.dart';
 import 'mono_tokens.dart';
 
-final Map<({bool dark, bool oled, TargetPlatform platform}), ThemeData> _monoThemeCache = {};
+final Map<({settings.ThemeMode mode, bool dark, TargetPlatform platform}), ThemeData> _monoThemeCache = {};
 
-ThemeData monoTheme({required bool dark, bool oled = false}) {
-  // ThemeData derives several defaults from defaultTargetPlatform.
-  final key = (dark: dark || oled, oled: oled, platform: defaultTargetPlatform);
+ThemeData monoTheme({
+  required bool dark,
+  bool oled = false,
+  settings.ThemeMode mode = settings.ThemeMode.dark,
+}) {
+  final resolvedMode = oled ? settings.ThemeMode.oled : mode;
+  final key = (mode: resolvedMode, dark: dark, platform: defaultTargetPlatform);
   final cached = _monoThemeCache[key];
   if (cached != null) return cached;
 
-  final theme = _buildMonoTheme(dark: key.dark, oled: key.oled, platform: key.platform);
+  final theme = _buildMonoTheme(mode: resolvedMode, dark: dark, platform: key.platform);
   _monoThemeCache[key] = theme;
   return theme;
 }
 
-ThemeData _buildMonoTheme({required bool dark, required bool oled, required TargetPlatform platform}) {
-  // neutral greys tuned for crisp contrast
-  final ({Color bg, Color surface, Color outline, Color text, Color textMuted}) c;
-  if (oled) {
-    c = (
-      bg: const Color(0xFF000000), // Pure black for OLED
-      surface: const Color(0xFF0A0A0A), // Very dark gray
-      outline: const Color(0x1FFFFFFF),
-      text: const Color(0xFFEDEDED),
-      textMuted: const Color(0x99EDEDED),
-    );
-  } else if (dark) {
-    c = (
-      bg: const Color(0xFF0E0F12),
-      surface: const Color(0xFF15171C),
-      outline: const Color(0x1FFFFFFF),
-      text: const Color(0xFFEDEDED),
-      textMuted: const Color(0x99EDEDED),
-    );
-  } else {
-    c = (
-      bg: const Color(0xFFF7F7F8),
-      surface: const Color(0xFFFFFFFF),
-      outline: const Color(0x19000000),
-      text: const Color(0xFF111111),
-      textMuted: const Color(0x99111111),
-    );
+ThemeData _buildMonoTheme({
+  required settings.ThemeMode mode,
+  required bool dark,
+  required TargetPlatform platform,
+}) {
+  // Color palette tuned for crisp contrast and theme identity
+  final ({Color bg, Color surface, Color outline, Color text, Color textMuted, Color primary, Color secondary}) c;
+
+  switch (mode) {
+    case settings.ThemeMode.oled:
+      c = (
+        bg: const Color(0xFF000000), // Pure black for OLED
+        surface: const Color(0xFF0A0A0A), // Very dark gray
+        outline: const Color(0x1FFFFFFF),
+        text: const Color(0xFFEDEDED),
+        textMuted: const Color(0x99EDEDED),
+        primary: const Color(0xFFEDEDED),
+        secondary: const Color(0xFFEDEDED),
+      );
+    case settings.ThemeMode.moonlight:
+      c = (
+        bg: const Color(0xFF0B132B), // Deep midnight navy (Moonlight)
+        surface: const Color(0xFF162234), // Rich slate card container
+        outline: const Color(0x3338BDF8), // Moonlight cyan glow edge
+        text: const Color(0xFFF8FAFC), // Snow white high-contrast text
+        textMuted: const Color(0xB394A3B8), // Cool slate muted metadata
+        primary: const Color(0xFF38BDF8), // Iconic Moonlight Cyan accent
+        secondary: const Color(0xFF60A5FA), // Soft blue secondary
+      );
+    case settings.ThemeMode.materialYou:
+      c = (
+        bg: const Color(0xFF101418), // M3 deep tonal dark surface
+        surface: const Color(0xFF1B2228), // M3 elevated tonal container
+        outline: const Color(0x33818CF8), // Harmonized dynamic outline
+        text: const Color(0xFFE2E8F0), // Material light text
+        textMuted: const Color(0xB3A0AEC0), // Tonal muted text
+        primary: const Color(0xFF818CF8), // Material You Periwinkle/Indigo
+        secondary: const Color(0xFF38BDF8), // Secondary teal
+      );
+    case settings.ThemeMode.dark:
+      c = (
+        bg: const Color(0xFF0E0F12),
+        surface: const Color(0xFF15171C),
+        outline: const Color(0x1FFFFFFF),
+        text: const Color(0xFFEDEDED),
+        textMuted: const Color(0x99EDEDED),
+        primary: const Color(0xFFEDEDED),
+        secondary: const Color(0xFFEDEDED),
+      );
+    case settings.ThemeMode.light:
+    case settings.ThemeMode.system:
+      if (dark) {
+        c = (
+          bg: const Color(0xFF0E0F12),
+          surface: const Color(0xFF15171C),
+          outline: const Color(0x1FFFFFFF),
+          text: const Color(0xFFEDEDED),
+          textMuted: const Color(0x99EDEDED),
+          primary: const Color(0xFFEDEDED),
+          secondary: const Color(0xFFEDEDED),
+        );
+      } else {
+        c = (
+          bg: const Color(0xFFF7F7F8),
+          surface: const Color(0xFFFFFFFF),
+          outline: const Color(0x19000000),
+          text: const Color(0xFF111111),
+          textMuted: const Color(0x99111111),
+          primary: const Color(0xFF111111),
+          secondary: const Color(0xFF111111),
+        );
+      }
   }
 
-  final isDark = dark || oled;
+  final isDark = dark || mode != settings.ThemeMode.light;
   final clickableCursor = WidgetStateProperty.resolveWith<MouseCursor>(
     (states) => states.contains(WidgetState.disabled) ? MouseCursor.defer : SystemMouseCursors.click,
   );
@@ -57,7 +107,7 @@ ThemeData _buildMonoTheme({required bool dark, required bool oled, required Targ
     padding: const WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 18, vertical: 14)),
     elevation: const WidgetStatePropertyAll(0),
     backgroundColor: WidgetStateProperty.resolveWith(
-      (states) => states.contains(WidgetState.disabled) ? c.text.withValues(alpha: 0.12) : c.text,
+      (states) => states.contains(WidgetState.disabled) ? c.text.withValues(alpha: 0.12) : c.primary,
     ),
     foregroundColor: WidgetStateProperty.resolveWith(
       (states) =>
@@ -76,18 +126,18 @@ ThemeData _buildMonoTheme({required bool dark, required bool oled, required Targ
     fontFamilyFallback: platform == TargetPlatform.linux ? const ['Go Noto Current', 'Go Noto Current Hangul'] : null,
     colorScheme: ColorScheme(
       brightness: isDark ? Brightness.dark : Brightness.light,
-      primary: c.text,
+      primary: c.primary,
       onPrimary: isDark ? c.bg : Colors.white,
-      secondary: c.text,
+      secondary: c.secondary,
       onSecondary: c.bg,
       surface: c.surface,
       onSurface: c.text,
       error: const Color(0xFFB00020),
       onError: Colors.white,
-      tertiary: c.text,
+      tertiary: c.secondary,
       onTertiary: c.bg,
       primaryContainer: c.surface,
-      onPrimaryContainer: c.text,
+      onPrimaryContainer: c.primary,
       secondaryContainer: c.surface,
       onSecondaryContainer: c.text,
       surfaceContainerHighest: c.surface,
@@ -106,8 +156,8 @@ ThemeData _buildMonoTheme({required bool dark, required bool oled, required Targ
     highlightColor: Colors.transparent,
     // Explicit mono-derived tile highlights: ListTile's native focus/hover
     // fill is the dpad focus visual inside M3E grouped-list cards.
-    focusColor: c.text.withValues(alpha: 0.12),
-    hoverColor: c.text.withValues(alpha: 0.05),
+    focusColor: c.primary.withValues(alpha: 0.16),
+    hoverColor: c.primary.withValues(alpha: 0.08),
     dividerColor: c.outline,
     scaffoldBackgroundColor: c.bg,
     appBarTheme: AppBarTheme(

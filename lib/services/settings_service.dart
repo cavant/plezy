@@ -40,7 +40,7 @@ import 'trackers/tracker_constants.dart';
 import '../profiles/profile.dart';
 import '../watch_together/services/watch_together_relay_endpoint.dart';
 
-enum ThemeMode { system, light, dark, oled }
+enum ThemeMode { system, light, dark, oled, moonlight, materialYou }
 
 /// Library density is now an int 1–5 (1 = most compact, 5 = most comfortable).
 /// Default is 3.
