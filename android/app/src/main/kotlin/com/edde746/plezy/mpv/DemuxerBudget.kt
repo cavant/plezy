@@ -66,9 +66,9 @@ data class DemuxerBudget(val aheadBytes: Long, val backBytes: Long) {
   companion object {
     private const val MIB = 1024L * 1024L
 
-    /** Tier boundaries. */
-    private const val TIGHT_TIER_MAX_MB = 256
-    private const val MID_TIER_MAX_MB = 512
+    /** Tier boundaries. 3GB Android TV devices (e.g. Shield TV) report 512MB largeHeap. */
+    private const val TIGHT_TIER_MAX_MB = 512
+    private const val MID_TIER_MAX_MB = 768
 
     /** The tiers in ascending order; [widenedToward] climbs this ladder. */
     private val TIERS = listOf(

@@ -46,8 +46,7 @@ int nextPowerOfTwo(int value) {
 /// land.
 int androidStreamRingCapBytes(int heapMB) {
   if (heapMB <= 0) return unknownBitrateStreamRingBytes;
-  if (heapMB <= 256) return 32 * 1024 * 1024;
-  if (heapMB <= 512) return 64 * 1024 * 1024;
+  if (heapMB <= 512) return 16 * 1024 * 1024;
   return maxStreamRingBytes;
 }
 

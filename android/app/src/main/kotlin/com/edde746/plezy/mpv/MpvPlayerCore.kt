@@ -250,9 +250,9 @@ class MpvPlayerCore private constructor(
      */
     internal val DECODER_QUEUE_OPTIONS: List<Pair<String, String>> = listOf(
       "vd-queue-enable" to "yes",
-      "vd-queue-max-samples" to "12",
-      "vd-queue-max-secs" to "0.5",
-      "vd-queue-max-bytes" to "48MiB"
+      "vd-queue-max-samples" to "3",
+      "vd-queue-max-secs" to "0.15",
+      "vd-queue-max-bytes" to "16MiB"
     )
 
     /**

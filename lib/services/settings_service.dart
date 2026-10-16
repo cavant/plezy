@@ -599,7 +599,7 @@ class SettingsService extends BaseSharedPreferencesService {
   static const subtitleRenderResolution = EnumPref<SubtitleRenderResolution>(
     'subtitle_render_resolution',
     values: SubtitleRenderResolution.values,
-    defaultValue: SubtitleRenderResolution.screen,
+    defaultValue: SubtitleRenderResolution.half,
   );
   static const subtitleBold = BoolPref('subtitle_bold');
   static const subtitleItalic = BoolPref('subtitle_italic');

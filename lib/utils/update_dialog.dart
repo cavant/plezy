@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../i18n/strings.g.dart';
+import '../services/fork_ota_update_service.dart';
 import '../services/update_service.dart';
 import '../widgets/dialog_action_button.dart';
 import 'dialogs.dart';
@@ -13,6 +16,13 @@ Future<void> showUpdateAvailableDialog(
   required String dismissLabel,
   bool showSkipVersion = false,
 }) {
+  if (Platform.isAndroid) {
+    return ForkOtaUpdateService.showUpdateDialog(
+      context,
+      updateInfo,
+      showSkipVersion: showSkipVersion,
+    );
+  }
   return showScopedDialog<void>(
     context: context,
     builder: (dialogContext) {

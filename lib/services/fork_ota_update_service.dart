@@ -4,15 +4,17 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:device_info_plus/device_info_plus.dart';
+import 'update_service.dart';
 
 class ForkOtaUpdateService {
-  // Update this to your GitHub username/repository
   static const String repoOwner = "cavant";
   static const String repoName = "plezy";
+  static const MethodChannel _deviceChannel = MethodChannel('com.plezy/device');
 
   static String get latestReleaseApiUrl =>
       "https://api.github.com/repos/$repoOwner/$repoName/releases/latest";
@@ -27,9 +29,9 @@ class ForkOtaUpdateService {
 
       if (response.statusCode != 200) return null;
 
-      final releaseData = jsonDecode(response.body);
+      final releaseData = jsonDecode(response.body) as Map<String, dynamic>;
       final remoteTag = (releaseData['tag_name'] as String?)?.replaceFirst('v', '') ?? '';
-      
+
       final packageInfo = await PackageInfo.fromPlatform();
       final currentVersion = packageInfo.version;
 
@@ -44,8 +46,21 @@ class ForkOtaUpdateService {
 
   /// Determines device ABI and finds matching APK asset in release data
   static Future<String?> getDownloadUrlForDevice(Map<String, dynamic> releaseData) async {
-    final assets = releaseData['assets'] as List<dynamic>? ?? [];
-    
+    List<dynamic>? assets = releaseData['assets'] as List<dynamic>?;
+    if (assets == null || assets.isEmpty) {
+      try {
+        final response = await http.get(
+          Uri.parse(latestReleaseApiUrl),
+          headers: {'Accept': 'application/vnd.github.v3+json'},
+        );
+        if (response.statusCode == 200) {
+          final fetched = jsonDecode(response.body) as Map<String, dynamic>;
+          assets = fetched['assets'] as List<dynamic>?;
+        }
+      } catch (_) {}
+    }
+    assets ??= [];
+
     // Detect primary ABI on Android
     String preferredArch = "arm64-v8a"; // Default for NVIDIA Shield TV
     if (Platform.isAndroid) {
@@ -78,18 +93,29 @@ class ForkOtaUpdateService {
   }
 
   /// Displays the TV-friendly D-Pad update dialog
-  static void showUpdateDialog(BuildContext context, Map<String, dynamic> releaseData) {
-    showDialog(
+  static Future<void> showUpdateDialog(
+    BuildContext context,
+    Map<String, dynamic> releaseData, {
+    bool showSkipVersion = false,
+  }) {
+    return showDialog<void>(
       context: context,
       barrierDismissible: false,
-      builder: (dialogCtx) => _OtaUpdateDialog(releaseData: releaseData),
+      builder: (dialogCtx) => _OtaUpdateDialog(
+        releaseData: releaseData,
+        showSkipVersion: showSkipVersion,
+      ),
     );
+  }
+
+  static Future<void> installApk(String filePath) async {
+    await _deviceChannel.invokeMethod('installApk', {'filePath': filePath});
   }
 
   static bool _isRemoteNewer(String current, String remote) {
     try {
-      final cParts = current.split('.').map(int.parse).toList();
-      final rParts = remote.split('.').map(int.parse).toList();
+      final cParts = current.split('.').map((p) => int.tryParse(p.split('+').first) ?? 0).toList();
+      final rParts = remote.split('.').map((p) => int.tryParse(p.split('+').first) ?? 0).toList();
       for (int i = 0; i < 3; i++) {
         final c = i < cParts.length ? cParts[i] : 0;
         final r = i < rParts.length ? rParts[i] : 0;
@@ -103,7 +129,8 @@ class ForkOtaUpdateService {
 
 class _OtaUpdateDialog extends StatefulWidget {
   final Map<String, dynamic> releaseData;
-  const _OtaUpdateDialog({required this.releaseData});
+  final bool showSkipVersion;
+  const _OtaUpdateDialog({required this.releaseData, this.showSkipVersion = false});
 
   @override
   State<_OtaUpdateDialog> createState() => _OtaUpdateDialogState();
@@ -117,14 +144,17 @@ class _OtaUpdateDialogState extends State<_OtaUpdateDialog> {
   Future<void> _startDownloadAndInstall() async {
     setState(() {
       _downloading = true;
-      _status = "Connecting to download server...";
+      _status = "Connecting to GitHub release server...";
       _progress = 0.0;
     });
 
     try {
       final downloadUrl = await ForkOtaUpdateService.getDownloadUrlForDevice(widget.releaseData);
       if (downloadUrl == null) {
-        setState(() => _status = "No compatible APK found for your device architecture.");
+        setState(() {
+          _downloading = false;
+          _status = "No compatible APK found for your device architecture.";
+        });
         return;
       }
 
@@ -146,7 +176,7 @@ class _OtaUpdateDialogState extends State<_OtaUpdateDialog> {
       await response.stream.listen((chunk) {
         sink.add(chunk);
         receivedBytes += chunk.length;
-        if (totalBytes > 0) {
+        if (totalBytes > 0 && mounted) {
           setState(() {
             _progress = receivedBytes / totalBytes;
             _status = "Downloading update: ${(_progress * 100).toStringAsFixed(1)}%";
@@ -155,31 +185,45 @@ class _OtaUpdateDialogState extends State<_OtaUpdateDialog> {
       }).asFuture();
 
       await sink.close();
-      setState(() => _status = "Download complete. Starting Android package installer...");
+      client.close();
 
-      // Call Android Package Installer via Platform Channel or native intent
-      // Using Android Intent action ACTION_VIEW with application/vnd.android.package-archive
-      // Note: FileProvider authority requires 'com.plezy.fileprovider' configured in AndroidManifest.xml
+      if (!mounted) return;
+      setState(() => _status = "Download complete. Launching Android package installer...");
+
+      await ForkOtaUpdateService.installApk(apkFile.path);
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
     } catch (e) {
-      setState(() {
-        _downloading = false;
-        _status = "Update failed: $e";
-      });
+      if (mounted) {
+        setState(() {
+          _downloading = false;
+          _status = "Update failed: $e";
+        });
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final tagName = widget.releaseData['tag_name'] ?? 'New Version';
+    final latestVersion = (widget.releaseData['latestVersion'] as String?) ??
+        (widget.releaseData['tag_name'] as String?)?.replaceFirst('v', '') ??
+        'New Version';
+    final tagName = widget.releaseData['tag_name'] ?? 'v$latestVersion';
+    final currentVersion = widget.releaseData['currentVersion'] as String?;
 
     return AlertDialog(
-      backgroundColor: const Color(0xFF1E1E1E),
+      backgroundColor: const Color(0xFF162234),
       title: Row(
         children: [
-          const Icon(Icons.system_update_alt, color: Colors.blueAccent, size: 28),
+          const Icon(Icons.system_update_alt, color: Color(0xFF38BDF8), size: 28),
           const SizedBox(width: 12),
-          Text("Update Plezy ($tagName)", style: const TextStyle(color: Colors.white, fontSize: 20)),
+          Expanded(
+            child: Text(
+              "Update Plezy ($tagName)",
+              style: const TextStyle(color: Colors.white, fontSize: 20),
+            ),
+          ),
         ],
       ),
       content: SizedBox(
@@ -188,13 +232,20 @@ class _OtaUpdateDialogState extends State<_OtaUpdateDialog> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(_status, style: const TextStyle(color: Colors.white70, fontSize: 16)),
+            Text(_status, style: const TextStyle(color: Colors.white, fontSize: 16)),
+            if (currentVersion != null) ...[
+              const SizedBox(height: 6),
+              Text(
+                "Installed: v$currentVersion  →  Available: v$latestVersion",
+                style: const TextStyle(color: Colors.white70, fontSize: 13),
+              ),
+            ],
             const SizedBox(height: 16),
             if (_downloading) ...[
               LinearProgressIndicator(
                 value: _progress > 0 ? _progress : null,
                 backgroundColor: Colors.white12,
-                color: Colors.blueAccent,
+                color: const Color(0xFF38BDF8),
                 minHeight: 8,
               ),
               const SizedBox(height: 8),
@@ -209,15 +260,27 @@ class _OtaUpdateDialogState extends State<_OtaUpdateDialog> {
             onPressed: () => Navigator.of(context).pop(),
             child: const Text("Later", style: TextStyle(color: Colors.white60)),
           ),
+        if (!_downloading && widget.showSkipVersion)
+          TextButton(
+            autofocus: false,
+            onPressed: () async {
+              await UpdateService.skipVersion(latestVersion);
+              if (context.mounted) Navigator.of(context).pop();
+            },
+            child: const Text("Skip Version", style: TextStyle(color: Colors.white60)),
+          ),
         ElevatedButton(
-          autofocus: true, // D-Pad automatically focuses the primary action
+          autofocus: true,
           style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.blueAccent,
-            foregroundColor: Colors.white,
+            backgroundColor: const Color(0xFF38BDF8),
+            foregroundColor: const Color(0xFF0B132B),
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           ),
           onPressed: _downloading ? null : _startDownloadAndInstall,
-          child: Text(_downloading ? "Downloading..." : "Update Now"),
+          child: Text(
+            _downloading ? "Downloading..." : "Update Now",
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
         ),
       ],
     );

@@ -15,8 +15,8 @@ import 'base_shared_preferences_service.dart';
 /// via auto_updater for native update dialogs and in-app installs.
 /// On all other platforms: falls back to GitHub API check + browser link dialog.
 class UpdateService {
-  static const String _githubRepo = 'edde746/plezy';
-  static const String _feedUrl = 'https://cdn.jsdelivr.net/gh/edde746/plezy@appcast/appcast.xml';
+  static const String _githubRepo = 'cavant/plezy';
+  static const String _feedUrl = 'https://cdn.jsdelivr.net/gh/cavant/plezy@appcast/appcast.xml';
 
   static const String _keySkippedVersion = 'update_skipped_version';
   static const String _keyLastCheckTime = 'update_last_check_time';
@@ -28,7 +28,7 @@ class UpdateService {
 
   /// Check if update checking is enabled via build flag
   static bool get isUpdateCheckEnabled {
-    return const bool.fromEnvironment('ENABLE_UPDATE_CHECK', defaultValue: false);
+    return const bool.fromEnvironment('ENABLE_UPDATE_CHECK', defaultValue: true);
   }
 
   /// Whether any in-app update path applies to this install.
@@ -180,6 +180,8 @@ class UpdateService {
           'hasUpdate': true,
           'currentVersion': currentVersion,
           'latestVersion': cleanVersion,
+          'tag_name': latestVersion,
+          'assets': data['assets'],
           'releaseUrl': data['html_url'] as String,
           'releaseName': data['name'] as String? ?? 'Version $cleanVersion',
           'releaseNotes': data['body'] as String? ?? '',

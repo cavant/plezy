@@ -68,12 +68,15 @@ internal object PlayerSurfaceHost {
     setZOrderOnTop(false)
     setZOrderMediaOverlay(true)
     FlutterOverlayHelper.applyCompositionOrder(this, -1)
-    if (renderScale < 1f) {
-      addOnLayoutChangeListener { view, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom ->
-        if (right - left == oldRight - oldLeft && bottom - top == oldBottom - oldTop) return@addOnLayoutChangeListener
-        val size = OsdPlanePolicy.fixedSizeFor(right - left, bottom - top, renderScale) ?: return@addOnLayoutChangeListener
-        (view as SurfaceView).holder.setFixedSize(size.width, size.height)
-      }
+    addOnLayoutChangeListener { view, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom ->
+      val w = right - left
+      val h = bottom - top
+      if (w == oldRight - oldLeft && h == oldBottom - oldTop) return@addOnLayoutChangeListener
+      if (w <= 0 || h <= 0) return@addOnLayoutChangeListener
+      val maxScale = minOf(1280f / w.toFloat(), 720f / h.toFloat(), 1f)
+      val effectiveScale = minOf(renderScale, maxScale)
+      val size = OsdPlanePolicy.fixedSizeFor(w, h, effectiveScale) ?: return@addOnLayoutChangeListener
+      (view as SurfaceView).holder.setFixedSize(size.width, size.height)
     }
   }
 
