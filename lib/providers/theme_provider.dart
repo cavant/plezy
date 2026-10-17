@@ -74,6 +74,8 @@ class ThemeProvider extends ChangeNotifier with DisposableChangeNotifierMixin, W
     settings.ThemeMode.oled => ThemeMode.dark,
     settings.ThemeMode.moonlight => ThemeMode.dark,
     settings.ThemeMode.materialYou => ThemeMode.dark,
+    settings.ThemeMode.plexAmber => ThemeMode.dark,
+    settings.ThemeMode.cinemaCrimson => ThemeMode.dark,
     settings.ThemeMode.system => ThemeMode.system,
   };
 
@@ -88,7 +90,9 @@ class ThemeProvider extends ChangeNotifier with DisposableChangeNotifierMixin, W
     settings.ThemeMode.dark ||
     settings.ThemeMode.oled ||
     settings.ThemeMode.moonlight ||
-    settings.ThemeMode.materialYou => true,
+    settings.ThemeMode.materialYou ||
+    settings.ThemeMode.plexAmber ||
+    settings.ThemeMode.cinemaCrimson => true,
     settings.ThemeMode.system => platformBrightness == Brightness.dark,
   };
 
@@ -149,6 +153,8 @@ class ThemeProvider extends ChangeNotifier with DisposableChangeNotifierMixin, W
       settings.ThemeMode.oled => 'oled',
       settings.ThemeMode.moonlight => 'dark',
       settings.ThemeMode.materialYou => 'dark',
+      settings.ThemeMode.plexAmber => 'dark',
+      settings.ThemeMode.cinemaCrimson => 'dark',
       settings.ThemeMode.light => 'light',
       settings.ThemeMode.system => 'system',
     };
@@ -167,6 +173,10 @@ class ThemeProvider extends ChangeNotifier with DisposableChangeNotifierMixin, W
         return Symbols.nightlight_rounded;
       case settings.ThemeMode.materialYou:
         return Symbols.palette_rounded;
+      case settings.ThemeMode.plexAmber:
+        return Symbols.theaters_rounded;
+      case settings.ThemeMode.cinemaCrimson:
+        return Symbols.movie_filter_rounded;
       case settings.ThemeMode.system:
         return Symbols.brightness_auto_rounded;
     }

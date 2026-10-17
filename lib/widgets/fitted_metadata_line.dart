@@ -16,6 +16,24 @@ sealed class MetadataLinePart {
   final int dropPriority;
 }
 
+enum MetadataBadgeStyle {
+  standard,
+  hdr,
+  dolby,
+}
+
+/// A styled badge pill: for 4K UHD, HDR, Dolby Vision, Dolby Atmos, audio codecs.
+class MetadataLineBadge extends MetadataLinePart {
+  const MetadataLineBadge(
+    this.text, {
+    required super.dropPriority,
+    this.badgeStyle = MetadataBadgeStyle.standard,
+  });
+
+  final String text;
+  final MetadataBadgeStyle badgeStyle;
+}
+
 /// A plain text field: year, certification, runtime, a quality label.
 class MetadataLineText extends MetadataLinePart {
   const MetadataLineText(this.text, {required super.dropPriority});
@@ -115,6 +133,7 @@ class FittedMetadataLine extends StatelessWidget {
         final unitWidths = <List<double>>[
           for (final part in parts)
             switch (part) {
+              MetadataLineBadge(:final text) => <double>[textWidth(text) + 14.0],
               MetadataLineText(:final text) => <double>[textWidth(text)],
               MetadataLineIconText(:final text, :final detail) => <double>[
                 iconSize + iconTextGap + textWidth(text),
@@ -184,6 +203,39 @@ class FittedMetadataLine extends StatelessWidget {
           if (kept == 0) continue;
           if (children.isNotEmpty) children.add(Text(separator, maxLines: 1, style: textStyle));
           children.add(switch (parts[index]) {
+            MetadataLineBadge(:final text, :final badgeStyle) => Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+              decoration: BoxDecoration(
+                color: switch (badgeStyle) {
+                  MetadataBadgeStyle.dolby => const Color(0x268B5CF6),
+                  MetadataBadgeStyle.hdr => const Color(0x26F59E0B),
+                  MetadataBadgeStyle.standard => textStyle.color?.withValues(alpha: 0.12) ?? const Color(0x1FFFFFFF),
+                },
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(
+                  color: switch (badgeStyle) {
+                    MetadataBadgeStyle.dolby => const Color(0x66A78BFA),
+                    MetadataBadgeStyle.hdr => const Color(0x66FBBF24),
+                    MetadataBadgeStyle.standard => textStyle.color?.withValues(alpha: 0.28) ?? const Color(0x33FFFFFF),
+                  },
+                  width: 1,
+                ),
+              ),
+              child: Text(
+                text,
+                maxLines: 1,
+                style: textStyle.copyWith(
+                  fontSize: (textStyle.fontSize ?? 13) * 0.82,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.3,
+                  color: switch (badgeStyle) {
+                    MetadataBadgeStyle.dolby => const Color(0xFFDDD6FE),
+                    MetadataBadgeStyle.hdr => const Color(0xFFFEF3C7),
+                    MetadataBadgeStyle.standard => textStyle.color,
+                  },
+                ),
+              ),
+            ),
             MetadataLineText(:final text) => Text(text, maxLines: 1, style: textStyle),
             MetadataLineIconText(:final icon, :final text, :final detail) => Row(
               mainAxisSize: MainAxisSize.min,

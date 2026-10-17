@@ -26,6 +26,8 @@ String themeModeLabel(settings.ThemeMode mode) => switch (mode) {
   settings.ThemeMode.oled => t.settings.oledTheme,
   settings.ThemeMode.moonlight => 'Moonlight (Plex Slate)',
   settings.ThemeMode.materialYou => 'Material You (Dynamic)',
+  settings.ThemeMode.plexAmber => 'Plex Classic (Amber Gold)',
+  settings.ThemeMode.cinemaCrimson => 'Cinema Crimson (Netflix Red)',
 };
 
 /// Model for option selection dialogs.

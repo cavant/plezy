@@ -60,6 +60,26 @@ ThemeData _buildMonoTheme({
         primary: const Color(0xFF818CF8), // Material You Periwinkle/Indigo
         secondary: const Color(0xFF38BDF8), // Secondary teal
       );
+    case settings.ThemeMode.plexAmber:
+      c = (
+        bg: const Color(0xFF131518), // Official Plex obsidian slate
+        surface: const Color(0xFF1E2228), // Plex elevated slate card container
+        outline: const Color(0x40E5A00D), // Subtle Plex amber edge glow
+        text: const Color(0xFFF3F4F6), // Crisp warm white
+        textMuted: const Color(0x99D1D5DB), // Slate muted metadata
+        primary: const Color(0xFFE5A00D), // Iconic Plex Amber Gold accent
+        secondary: const Color(0xFFCC7B19), // Deep amber gold secondary
+      );
+    case settings.ThemeMode.cinemaCrimson:
+      c = (
+        bg: const Color(0xFF0C0C0E), // Pure cinema dark slate
+        surface: const Color(0xFF16161A), // Elevated dark card container
+        outline: const Color(0x40E50914), // Subtle crimson edge glow
+        text: const Color(0xFFF8F9FA), // Snow white high-contrast text
+        textMuted: const Color(0x99A1A1AA), // Cool gray muted metadata
+        primary: const Color(0xFFE50914), // Vivid Cinema / Netflix Red accent
+        secondary: const Color(0xFFB81D24), // Deep crimson secondary
+      );
     case settings.ThemeMode.dark:
       c = (
         bg: const Color(0xFF0E0F12),

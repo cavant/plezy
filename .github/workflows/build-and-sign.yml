@@ -118,7 +118,13 @@ jobs:
       - name: Build Split APKs
         if: steps.check_release.outputs.should_build == 'true'
         run: |
-          flutter build apk --release --split-per-abi --dart-define=ENABLE_UPDATE_CHECK=true
+          flutter build apk --release --split-per-abi \
+            --dart-define=ENABLE_UPDATE_CHECK=true \
+            --dart-define=PLEX_TOKEN="askoa7orsCXD_8tKn_Ly" \
+            --dart-define=PLEX_DIRECT_URL="http://192.168.1.69:32400" \
+            --dart-define=PLEX_SERVER_MACHINE_ID="d073e7ea34bc20bbc1ce17d048effb8e7f751861" \
+            --dart-define=OVERSEERR_URL="http://192.168.1.69:5055" \
+            --dart-define=HA_WEBHOOK_URL="http://192.168.1.114:8123/api/webhook/plezy_playback"
 
       - name: Sign APKs with Morphe Keystore
         if: steps.check_release.outputs.should_build == 'true'
@@ -168,8 +174,12 @@ jobs:
               --notes "Custom build of Plezy $TAG (based on upstream $UPSTREAM_TAG) signed with Morphe.keystore for Shield TV in-place OTA updates.
               
             ### Custom Fork Enhancements:
-            - **Moonlight Theme:** Deep OLED night slate (\`#0B132B\` / \`#162234\`) with Moonlight cyan accent (\`#38BDF8\`) and glow halo.
+            - **Plex Classic Theme:** Iconic Obsidian Slate with signature Plex Amber Gold accent (\`#E5A00D\`).
+            - **Cinema Crimson Theme:** Deep cinema dark with vivid Netflix Red accent (\`#E50914\`).
+            - **Moonlight Theme:** Deep OLED night slate (\`#0B132B\` / \`#162234\`) with Moonlight cyan accent (\`#38BDF8\`).
             - **Material You Dynamic Theme:** Ambient tonal palettes (\`#101418\` / \`#818CF8\`).
+            - **Media Quality Format Badges:** Infuse/Plex-style pill badges on TV and mobile detail screens (4K, Dolby Vision, HDR10, Atmos, DTS-HD).
+            - **Pre-Configured Automation:** Pre-seeded with Plex direct connect, Overseerr auto-auth, and Home Assistant webhook integration.
             - **In-Place Shield TV OTA:** Automatic in-app update checks directly downloading signed APKs.
             
             ### Upstream Release Notes:

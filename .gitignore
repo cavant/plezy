@@ -68,6 +68,8 @@ duplication-report/
 .env.*
 .env
 !.env.example
+local_config.json
+local_preseed.json
 
 **/fastlane/**/
 **/fastlane/report.xml

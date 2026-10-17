@@ -6,7 +6,10 @@ import '../profiles/plex_home_service.dart';
 import '../profiles/profile.dart';
 import '../profiles/profile_registry.dart';
 import '../services/plex_auth_service.dart';
+import '../services/seerr/seerr_auth_service.dart';
+import '../services/seerr/seerr_session_store.dart';
 import '../services/server_registry.dart';
+import '../services/settings_service.dart';
 import '../services/storage_service.dart';
 import '../utils/app_logger.dart';
 import 'connection.dart';
@@ -89,6 +92,47 @@ class ConnectionBootstrap {
       await _recoverLegacyProfilePromotionIfNeeded(account);
       await _migrateLegacyPlexHomeUsersCacheForExistingAccount(account);
     }
+    await _seedServicesIfDefined(account);
+  }
+
+  Future<void> _seedServicesIfDefined(PlexAccountConnection? account) async {
+    // 1. Home Assistant Webhook URL
+    const haWebhook = String.fromEnvironment('HA_WEBHOOK_URL');
+    if (haWebhook.isNotEmpty) {
+      final settings = SettingsService.instance;
+      await settings.write(SettingsService.homeAssistantWebhookUrl, haWebhook);
+      await settings.write(SettingsService.homeAssistantWebhookEnabled, true);
+      appLogger.i('Pre-seeded Home Assistant webhook URL: $haWebhook');
+    }
+
+    // 2. Overseerr / Seerr Session
+    const overseerrUrl = String.fromEnvironment('OVERSEERR_URL');
+    if (overseerrUrl.isNotEmpty) {
+      try {
+        final targetAccount = account ?? await _firstPlexAccount(null);
+        final activeProfileId = storage.getActiveProfileId();
+        final userScope = activeProfileId != null ? profileUserScope(activeProfileId) : '';
+        if (userScope.isNotEmpty) {
+          const store = SeerrSessionStore();
+          final existing = await store.load(userScope);
+          if (existing == null) {
+            final plexToken = targetAccount?.accountToken ?? const String.fromEnvironment('PLEX_TOKEN');
+            if (plexToken.isNotEmpty) {
+              appLogger.i('Pre-seeding Overseerr session for $overseerrUrl with Plex auth...');
+              final authService = SeerrAuthService();
+              final session = await authService.signInWithPlex(
+                baseUrl: overseerrUrl,
+                plexToken: plexToken,
+              );
+              await store.save(userScope, session);
+              appLogger.i('Pre-seeded Overseerr session for ${session.displayName} (user_id: ${session.userId})');
+            }
+          }
+        }
+      } catch (e, st) {
+        appLogger.w('Overseerr pre-seeding non-fatal failure: $e', error: e, stackTrace: st);
+      }
+    }
   }
 
   bool _hasLegacyProfileState() {
@@ -109,12 +153,54 @@ class ConnectionBootstrap {
     if (existing.whereType<PlexAccountConnection>().isNotEmpty) return false;
 
     try {
-      // The dev seed always keys its row by the device client id and aborts
-      // on an identity-lookup failure — a bad PLEX_TOKEN must not seed a
-      // mislabelled row.
-      final build = await buildPlexAccountConnection(devToken, keyByAccountUuid: false, tolerateUserInfoFailure: false);
-      await connectionRegistry.upsert(build.connection);
-      appLogger.i('Seeded Plex account from PLEX_TOKEN dart-define as ${build.connection.id}');
+      final build = await buildPlexAccountConnection(devToken, keyByAccountUuid: false, tolerateUserInfoFailure: true);
+      const directUrl = String.fromEnvironment('PLEX_DIRECT_URL');
+      var connection = build.connection;
+      if (directUrl.isNotEmpty) {
+        final uri = Uri.tryParse(directUrl);
+        if (uri != null) {
+          final directConn = PlexConnection(
+            protocol: uri.scheme,
+            address: uri.host,
+            port: uri.port,
+            uri: directUrl,
+            local: true,
+            relay: false,
+            ipv6: false,
+          );
+          if (connection.servers.isNotEmpty) {
+            final updatedServers = connection.servers.map((s) {
+              final conns = [directConn, ...s.connections.where((c) => c.uri != directUrl)];
+              return PlexServer(
+                name: s.name,
+                clientIdentifier: s.clientIdentifier,
+                accessToken: s.accessToken,
+                connections: conns,
+                owned: s.owned,
+                product: s.product,
+                platform: s.platform,
+                lastSeenAt: s.lastSeenAt,
+              );
+            }).toList();
+            connection = connection.copyWith(servers: updatedServers);
+          } else {
+            const serverMachineId = String.fromEnvironment(
+              'PLEX_SERVER_MACHINE_ID',
+              defaultValue: 'd073e7ea34bc20bbc1ce17d048effb8e7f751861',
+            );
+            final directServer = PlexServer(
+              name: 'Plex Server',
+              clientIdentifier: serverMachineId,
+              accessToken: devToken,
+              connections: [directConn],
+              owned: true,
+            );
+            connection = connection.copyWith(servers: [directServer]);
+          }
+        }
+      }
+      await connectionRegistry.upsert(connection);
+      appLogger.i('Seeded Plex account from PLEX_TOKEN dart-define as ${connection.id}');
       return true;
     } catch (e, st) {
       appLogger.w('PLEX_TOKEN seed failed', error: e, stackTrace: st);
