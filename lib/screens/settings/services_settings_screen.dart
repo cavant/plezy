@@ -68,7 +68,7 @@ class ServicesSettingsScreen extends StatelessWidget {
                   icon: Symbols.link_rounded,
                   title: 'Webhook URL',
                   subtitle: 'HTTP endpoint for Home Assistant automation trigger',
-                  defaultValue: 'http://192.168.1.114:8123/api/webhook/plezy_playback',
+                  defaultValue: 'http://192.168.1.114/api/webhook/plezy_playback',
                   labelText: 'Home Assistant Webhook URL',
                 ),
                 FocusableListTile(

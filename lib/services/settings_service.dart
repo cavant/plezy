@@ -829,7 +829,7 @@ class SettingsService extends BaseSharedPreferencesService {
   static const homeAssistantWebhookEnabled = BoolPref('ha_webhook_enabled', defaultValue: true);
   static const homeAssistantWebhookUrl = StringPref(
     'ha_webhook_url',
-    defaultValue: 'http://192.168.1.114:8123/api/webhook/plezy_playback',
+    defaultValue: 'http://192.168.1.114/api/webhook/plezy_playback',
   );
 
   static NullableStringPref recentRoomsForProfile(String profileId) {

@@ -20,6 +20,16 @@ class HomeAssistantSyncService {
   DateTime? _lastThrottledProgress;
   String? _lastReportedState;
 
+  String _normalizeWebhookUrl(String url) {
+    var trimmed = url.trim();
+    if (trimmed.isEmpty) return '';
+    if (trimmed.contains('192.168.1.114:8123')) {
+      trimmed = trimmed.replaceFirst('192.168.1.114:8123', '192.168.1.114');
+      unawaited(SettingsService.instance.write(SettingsService.homeAssistantWebhookUrl, trimmed));
+    }
+    return trimmed;
+  }
+
   /// Dispatch a playback lifecycle event to Home Assistant.
   Future<void> reportEvent({
     required String state, // 'playing', 'paused', 'stopped'
@@ -35,7 +45,8 @@ class HomeAssistantSyncService {
     final enabled = settings.read(SettingsService.homeAssistantWebhookEnabled);
     if (!enabled) return;
 
-    final webhookUrl = settings.read(SettingsService.homeAssistantWebhookUrl).trim();
+    final rawUrl = settings.read(SettingsService.homeAssistantWebhookUrl);
+    final webhookUrl = _normalizeWebhookUrl(rawUrl);
     if (webhookUrl.isEmpty) return;
 
     final now = DateTime.now();
@@ -100,7 +111,8 @@ class HomeAssistantSyncService {
   /// Fire a test ping to verify connectivity with the configured Home Assistant webhook.
   Future<bool> sendTestPing() async {
     final settings = SettingsService.instance;
-    final webhookUrl = settings.read(SettingsService.homeAssistantWebhookUrl).trim();
+    final rawUrl = settings.read(SettingsService.homeAssistantWebhookUrl);
+    final webhookUrl = _normalizeWebhookUrl(rawUrl);
     if (webhookUrl.isEmpty) return false;
 
     try {

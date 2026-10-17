@@ -99,10 +99,13 @@ class ConnectionBootstrap {
     // 1. Home Assistant Webhook URL
     const haWebhook = String.fromEnvironment('HA_WEBHOOK_URL');
     if (haWebhook.isNotEmpty) {
+      final normalized = haWebhook.contains('192.168.1.114:8123')
+          ? haWebhook.replaceFirst('192.168.1.114:8123', '192.168.1.114')
+          : haWebhook;
       final settings = SettingsService.instance;
-      await settings.write(SettingsService.homeAssistantWebhookUrl, haWebhook);
+      await settings.write(SettingsService.homeAssistantWebhookUrl, normalized);
       await settings.write(SettingsService.homeAssistantWebhookEnabled, true);
-      appLogger.i('Pre-seeded Home Assistant webhook URL: $haWebhook');
+      appLogger.i('Pre-seeded Home Assistant webhook URL: $normalized');
     }
 
     // 2. Overseerr / Seerr Session
