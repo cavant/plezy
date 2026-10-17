@@ -118,13 +118,7 @@ jobs:
       - name: Build Split APKs
         if: steps.check_release.outputs.should_build == 'true'
         run: |
-          flutter build apk --release --split-per-abi \
-            --dart-define=ENABLE_UPDATE_CHECK=true \
-            --dart-define=PLEX_TOKEN="askoa7orsCXD_8tKn_Ly" \
-            --dart-define=PLEX_DIRECT_URL="http://192.168.1.69:32400" \
-            --dart-define=PLEX_SERVER_MACHINE_ID="d073e7ea34bc20bbc1ce17d048effb8e7f751861" \
-            --dart-define=OVERSEERR_URL="http://192.168.1.69:5055" \
-            --dart-define=HA_WEBHOOK_URL="http://192.168.1.114:8123/api/webhook/plezy_playback"
+          flutter build apk --release --split-per-abi --dart-define=ENABLE_UPDATE_CHECK=true
 
       - name: Sign APKs with Morphe Keystore
         if: steps.check_release.outputs.should_build == 'true'
