@@ -63,7 +63,7 @@ class HomeAssistantSyncService {
       'season': metadata.parentIndex,
       'episode': metadata.index,
       'year': metadata.year,
-      'type': metadata.type?.name ?? 'video',
+      'type': metadata.kind.name,
       'position_ms': position.inMilliseconds,
       'duration_ms': duration.inMilliseconds,
       'progress_percent': double.parse(progressPercent.toStringAsFixed(1)),
