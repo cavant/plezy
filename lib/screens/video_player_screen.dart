@@ -96,6 +96,7 @@ import '../utils/snackbar_helper.dart';
 import '../utils/stream_buffer_sizing.dart';
 import '../utils/video_player_navigation.dart';
 import '../utils/android_exit_diagnostics.dart';
+import '../utils/device_channel.dart';
 import 'video_player/completion_latch.dart';
 import 'video_player/episode_session_state.dart';
 import 'video_player/first_frame_gate.dart';

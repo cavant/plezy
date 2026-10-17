@@ -556,3 +556,42 @@ void showRegexInputDialog({
     onDispose: controller.dispose,
   );
 }
+
+void showStringInputDialog({
+  required BuildContext context,
+  required String title,
+  required String currentValue,
+  required String defaultValue,
+  String? labelText,
+  required Future<void> Function(String value) onSave,
+}) {
+  final controller = TextEditingController(text: currentValue);
+  _showSettingsInputDialog(
+    context: context,
+    title: title,
+    contentBuilder: (_, _, setDialogState, saveFocusNode) {
+      return FocusableTextField(
+        controller: controller,
+        decoration: InputDecoration(labelText: labelText),
+        autofocus: true,
+        textInputAction: TextInputAction.done,
+        onEditingComplete: () => saveFocusNode.requestFocus(),
+      );
+    },
+    leadingActionsBuilder: (_, setDialogState) => [
+      DialogActionButton(
+        onPressed: () {
+          controller.text = defaultValue;
+          setDialogState(() {});
+        },
+        label: t.settings.resetToDefault,
+      ),
+    ],
+    onSave: (_) async {
+      await onSave(controller.text.trim());
+      return true;
+    },
+    onDispose: controller.dispose,
+  );
+}
+

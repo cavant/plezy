@@ -19,6 +19,18 @@ extension _VideoPlayerPlaybackStartMethods on VideoPlayerScreenState {
     // 503s observed from here on belong to this attempt's open.
     _http503Watchdog.disarm();
 
+    // On Android (specifically NVIDIA Shield TV / low-RAM boxes), proactively
+    // trim background processes before opening heavy 4K/HDR hardware decoders.
+    if (Platform.isAndroid) {
+      unawaited(deviceChannel.invokeMethod('trimBackgroundMemory').then((report) {
+        if (report is Map) {
+          appLogger.i('Shield background memory trim complete: $report');
+        }
+      }).catchError((e) {
+        appLogger.d('Shield background memory trim failed: $e');
+      }));
+    }
+
     // Live TV mode: bypass standard playback initialization
     if (widget.isLive) {
       // Owned until the start commits or fails: a zap from a source that

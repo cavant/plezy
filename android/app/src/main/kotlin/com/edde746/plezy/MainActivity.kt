@@ -34,6 +34,7 @@ import com.edde746.plezy.mpv.MpvPlayerPlugin
 import com.edde746.plezy.shared.AssistiveTechnologyMonitor
 import com.edde746.plezy.shared.DeviceQuirks
 import com.edde746.plezy.shared.MediaCodecQuery
+import com.edde746.plezy.shared.ShieldMemoryOptimizer
 import com.edde746.plezy.shared.ThemeHelper
 import com.edde746.plezy.watchnext.WatchNextPlugin
 import io.flutter.embedding.android.FlutterActivity
@@ -855,6 +856,14 @@ class MainActivity : FlutterActivity() {
         "getDeviceName" -> result.success(getDeviceName())
         "getPerformanceSignals" -> result.success(getPerformanceSignals())
         "getVideoDecodeCapabilities" -> result.success(MediaCodecQuery.hardwareVideoDecodeSupport())
+        "trimBackgroundMemory" -> {
+          exitDiagnosticsExecutor.execute {
+            val report = ShieldMemoryOptimizer.trimBackgroundProcesses(this@MainActivity)
+            runOnUiThread {
+              result.success(report)
+            }
+          }
+        }
         "getBackgroundWorkSignals" -> result.success(
           BackgroundWorkClassifier.toMap(BackgroundWorkDiagnostics.read(this))
         )

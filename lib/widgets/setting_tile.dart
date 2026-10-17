@@ -394,3 +394,46 @@ class SettingColorTile extends StatelessWidget {
     );
   }
 }
+
+/// ListTile that opens [showStringInputDialog] for a [Pref<String>].
+class SettingStringTile extends StatelessWidget {
+  final Pref<String> pref;
+  final IconData icon;
+  final String title;
+  final String? subtitle;
+  final String defaultValue;
+  final String? labelText;
+  final FutureOr<void> Function(String)? onAfterWrite;
+
+  const SettingStringTile({
+    super.key,
+    required this.pref,
+    required this.icon,
+    required this.title,
+    this.subtitle,
+    required this.defaultValue,
+    this.labelText,
+    this.onAfterWrite,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<String>(
+      valueListenable: SettingsService.instance.listenable(pref),
+      builder: (_, value, _) => _SettingRow(
+        icon: icon,
+        title: title,
+        subtitle: Text(value.isNotEmpty ? value : (subtitle ?? '')),
+        onTap: () => showStringInputDialog(
+          context: context,
+          title: title,
+          currentValue: value,
+          defaultValue: defaultValue,
+          labelText: labelText,
+          onSave: (v) => _writeAndNotify(context, pref, v, onAfterWrite),
+        ),
+      ),
+    );
+  }
+}
+

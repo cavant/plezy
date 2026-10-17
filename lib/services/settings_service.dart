@@ -826,6 +826,11 @@ class SettingsService extends BaseSharedPreferencesService {
   static const autoPip = _AutoPipPref();
   static const customDownloadPath = NullableStringPref('custom_download_path');
   static final customRelayUrl = NullableStringPref('custom_relay_url', transform: _normalizeRelayBaseUrl);
+  static const homeAssistantWebhookEnabled = BoolPref('ha_webhook_enabled', defaultValue: true);
+  static const homeAssistantWebhookUrl = StringPref(
+    'ha_webhook_url',
+    defaultValue: 'http://192.168.1.114:8123/api/webhook/plezy_playback',
+  );
 
   static NullableStringPref recentRoomsForProfile(String profileId) {
     if (profileId.trim().isEmpty) {
