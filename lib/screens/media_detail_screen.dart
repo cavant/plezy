@@ -4138,7 +4138,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
 
     for (final part in _tvDetailMetadataParts(metadata)) {
       add(switch (part) {
-        MetadataLineText(:final text) || MetadataLineIconText(:final text) => text,
+        MetadataLineBadge(:final text) || MetadataLineText(:final text) || MetadataLineIconText(:final text) => text,
         MetadataLineRatings(:final ratings) => ratingsSemanticLabel(ratings),
       });
     }

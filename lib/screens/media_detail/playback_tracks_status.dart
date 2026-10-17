@@ -205,7 +205,7 @@ extension _MediaDetailPlaybackTracksStatus on _MediaDetailScreenState {
     ];
     final semanticsLabel =
         '${t.videoControls.tracksButton}: ${[for (final part in parts) switch (part) {
-            MetadataLineText(:final text) => text,
+            MetadataLineBadge(:final text) || MetadataLineText(:final text) => text,
             MetadataLineIconText(:final text, :final detail) => detail == null ? text : '$text${MetadataLineIconText.detailSeparator}$detail',
             MetadataLineRatings() => '',
           }].join(', ')}';
