@@ -893,6 +893,30 @@ class PlezyActivity : FlutterActivity() {
             }
           }
         }
+        "canRequestPackageInstalls" -> {
+          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            result.success(packageManager.canRequestPackageInstalls())
+          } else {
+            result.success(true)
+          }
+        }
+        "openUnknownAppSourcesSettings" -> {
+          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            try {
+              val intent = Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
+                data = android.net.Uri.parse("package:$packageName")
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+              }
+              startActivity(intent)
+              result.success(true)
+            } catch (e: Exception) {
+              Log.e(TAG, "Failed to open unknown app sources settings", e)
+              result.success(false)
+            }
+          } else {
+            result.success(false)
+          }
+        }
         "installApk" -> {
           val filePath = call.argument<String>("filePath") ?: (call.arguments as? String)
           if (filePath.isNullOrBlank()) {
@@ -905,6 +929,19 @@ class PlezyActivity : FlutterActivity() {
               result.error("FILE_NOT_FOUND", "APK file does not exist: $filePath", null)
               return@setMethodCallHandler
             }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !packageManager.canRequestPackageInstalls()) {
+              try {
+                val intent = Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
+                  data = android.net.Uri.parse("package:$packageName")
+                  addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                startActivity(intent)
+              } catch (e: Exception) {
+                Log.w(TAG, "Failed to open unknown app sources settings", e)
+              }
+              result.error("PERMISSION_DENIED", "Install unknown apps permission required", null)
+              return@setMethodCallHandler
+            }
             val uri = androidx.core.content.FileProvider.getUriForFile(
               this,
               "${applicationContext.packageName}.fileprovider",
@@ -912,7 +949,14 @@ class PlezyActivity : FlutterActivity() {
             )
             val installIntent = Intent(Intent.ACTION_VIEW).apply {
               setDataAndType(uri, "application/vnd.android.package-archive")
-              addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
+              addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+              addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+              addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            }
+            val resolvedList = packageManager.queryIntentActivities(installIntent, PackageManager.MATCH_DEFAULT_ONLY)
+            for (resolveInfo in resolvedList) {
+              val pkg = resolveInfo.activityInfo.packageName
+              grantUriPermission(pkg, uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
             startActivity(installIntent)
             result.success(true)

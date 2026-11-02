@@ -108,6 +108,21 @@ class ForkOtaUpdateService {
     );
   }
 
+  static Future<bool> canRequestPackageInstalls() async {
+    try {
+      final res = await _deviceChannel.invokeMethod<bool>('canRequestPackageInstalls');
+      return res ?? true;
+    } catch (_) {
+      return true;
+    }
+  }
+
+  static Future<void> openUnknownAppSourcesSettings() async {
+    try {
+      await _deviceChannel.invokeMethod('openUnknownAppSourcesSettings');
+    } catch (_) {}
+  }
+
   static Future<void> installApk(String filePath) async {
     await _deviceChannel.invokeMethod('installApk', {'filePath': filePath});
   }
@@ -136,12 +151,57 @@ class _OtaUpdateDialog extends StatefulWidget {
   State<_OtaUpdateDialog> createState() => _OtaUpdateDialogState();
 }
 
-class _OtaUpdateDialogState extends State<_OtaUpdateDialog> {
+class _OtaUpdateDialogState extends State<_OtaUpdateDialog> with WidgetsBindingObserver {
   bool _downloading = false;
+  bool _needsPermission = false;
   double _progress = 0.0;
   String _status = "A new update is available for Plezy.";
 
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _checkPermission();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _checkPermission();
+    }
+  }
+
+  Future<void> _checkPermission() async {
+    final canInstall = await ForkOtaUpdateService.canRequestPackageInstalls();
+    if (mounted) {
+      setState(() {
+        _needsPermission = !canInstall;
+        if (!canInstall) {
+          _status = "To install updates directly, Plezy requires permission to install unknown apps. Click 'Grant Permission' below to open TV Settings, enable the toggle, then return here.";
+        } else if (_status.contains("permission") || _status.contains("Permission")) {
+          _status = "Permission granted! Press 'Update Now' to proceed.";
+        }
+      });
+    }
+  }
+
   Future<void> _startDownloadAndInstall() async {
+    final canInstall = await ForkOtaUpdateService.canRequestPackageInstalls();
+    if (!canInstall) {
+      setState(() {
+        _needsPermission = true;
+        _status = "Please enable 'Install unknown apps' in Settings first.";
+      });
+      await ForkOtaUpdateService.openUnknownAppSourcesSettings();
+      return;
+    }
+
     setState(() {
       _downloading = true;
       _status = "Connecting to GitHub release server...";
@@ -188,9 +248,12 @@ class _OtaUpdateDialogState extends State<_OtaUpdateDialog> {
       client.close();
 
       if (!mounted) return;
-      setState(() => _status = "Download complete. Launching Android package installer...");
+      setState(() => _status = "Download complete! Opening Android package installer...\nPlease confirm 'Install' on your TV screen.");
 
       await ForkOtaUpdateService.installApk(apkFile.path);
+
+      // Keep the confirmation instruction visible briefly before dismissing
+      await Future.delayed(const Duration(seconds: 4));
       if (mounted) {
         Navigator.of(context).pop();
       }
@@ -269,19 +332,33 @@ class _OtaUpdateDialogState extends State<_OtaUpdateDialog> {
             },
             child: const Text("Skip Version", style: TextStyle(color: Colors.white60)),
           ),
-        ElevatedButton(
-          autofocus: true,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF38BDF8),
-            foregroundColor: const Color(0xFF0B132B),
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        if (_needsPermission && !_downloading)
+          ElevatedButton(
+            autofocus: true,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFF59E0B),
+              foregroundColor: Colors.black,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            ),
+            onPressed: () async {
+              await ForkOtaUpdateService.openUnknownAppSourcesSettings();
+            },
+            child: const Text("Grant Permission", style: TextStyle(fontWeight: FontWeight.bold)),
           ),
-          onPressed: _downloading ? null : _startDownloadAndInstall,
-          child: Text(
-            _downloading ? "Downloading..." : "Update Now",
-            style: const TextStyle(fontWeight: FontWeight.bold),
+        if (!_needsPermission)
+          ElevatedButton(
+            autofocus: true,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF38BDF8),
+              foregroundColor: const Color(0xFF0B132B),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            ),
+            onPressed: _downloading ? null : _startDownloadAndInstall,
+            child: Text(
+              _downloading ? "Downloading..." : "Update Now",
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
           ),
-        ),
       ],
     );
   }
