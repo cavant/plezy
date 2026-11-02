@@ -55,12 +55,16 @@ enum ThemeMode {
   forest,
   plum,
   paper,
+  moonlight,
+  materialYou,
+  plexAmber,
+  cinemaCrimson,
   custom;
 
   /// The presets and Custom are Supporter perks; the built-ins are free in
   /// every build.
   bool get isSupporterPerk => switch (this) {
-    system || light || dark || oled => false,
+    system || light || dark || oled || moonlight || materialYou || plexAmber || cinemaCrimson => false,
     ember || glacier || forest || plum || paper || custom => true,
   };
 }
@@ -675,7 +679,7 @@ class SettingsService extends BaseSharedPreferencesService {
   static const subtitleRenderResolution = EnumPref<SubtitleRenderResolution>(
     'subtitle_render_resolution',
     values: SubtitleRenderResolution.values,
-    defaultValue: SubtitleRenderResolution.screen,
+    defaultValue: SubtitleRenderResolution.half,
   );
   static const subtitleBold = BoolPref('subtitle_bold');
   static const subtitleItalic = BoolPref('subtitle_italic');
@@ -923,6 +927,11 @@ class SettingsService extends BaseSharedPreferencesService {
   /// A self-hosted Open Watch Party relay's base URL; null for the public
   /// relays.
   static final watchPartyRelayUrl = NullableStringPref('watch_party_relay_url', transform: _normalizeRelayBaseUrl);
+  static const homeAssistantWebhookEnabled = BoolPref('ha_webhook_enabled', defaultValue: true);
+  static const homeAssistantWebhookUrl = StringPref(
+    'ha_webhook_url',
+    defaultValue: 'http://192.168.1.114/api/webhook/plezy_playback',
+  );
 
   static NullableStringPref recentRoomsForProfile(String profileId) {
     if (profileId.trim().isEmpty) {

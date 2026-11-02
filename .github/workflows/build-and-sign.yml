@@ -1,0 +1,165 @@
+name: Build & Sign Plezy APKs (Morphe)
+
+on:
+  workflow_dispatch:
+    inputs:
+      force_build:
+        description: 'Force build even if tag already exists'
+        required: false
+        type: boolean
+        default: false
+  push:
+    branches:
+      - main
+    paths:
+      - 'lib/**'
+      - 'android/**'
+      - 'pubspec.yaml'
+      - '.github/workflows/build-and-sign.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  check-and-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout custom fork
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check upstream Plezy latest release
+        id: upstream
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          UPSTREAM_JSON=$(curl -s https://api.github.com/repos/edde746/plezy/releases/latest)
+          UPSTREAM_TAG=$(echo "$UPSTREAM_JSON" | jq -r '.tag_name // empty')
+          UPSTREAM_BODY=$(echo "$UPSTREAM_JSON" | jq -r '.body // empty')
+          echo "tag=$UPSTREAM_TAG" >> "$GITHUB_OUTPUT"
+          echo "$UPSTREAM_BODY" > /tmp/upstream_notes.md
+          echo "Latest upstream release tag: $UPSTREAM_TAG"
+
+      - name: Determine Release Tag & Check Status
+        id: check_release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          LOCAL_VERSION=$(grep '^version:' pubspec.yaml | awk '{print $2}' | cut -d'+' -f1)
+          FORK_TAG="v$LOCAL_VERSION"
+          echo "tag=$FORK_TAG" >> "$GITHUB_OUTPUT"
+          echo "Target Release Tag: $FORK_TAG"
+
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.force_build }}" = "true" ]; then
+            echo "Build forced via workflow_dispatch"
+            echo "should_build=true" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.event_name }}" = "push" ]; then
+            echo "Build triggered via push to main"
+            echo "should_build=true" >> "$GITHUB_OUTPUT"
+          elif gh release view "$FORK_TAG" &>/dev/null; then
+            echo "Release $FORK_TAG already exists in this fork. Checking upstream..."
+            UPSTREAM_TAG="${{ steps.upstream.outputs.tag }}"
+            if [ -n "$UPSTREAM_TAG" ] && [ "$UPSTREAM_TAG" != "$LOCAL_VERSION" ] && [ "$UPSTREAM_TAG" != "${LOCAL_VERSION#v}" ]; then
+              echo "Upstream has newer release $UPSTREAM_TAG. Will build."
+              echo "should_build=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "Release is up to date. Skipping."
+              echo "should_build=false" >> "$GITHUB_OUTPUT"
+            fi
+          else
+            echo "Release $FORK_TAG does not exist yet. Building."
+            echo "should_build=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Setup Java 21
+        if: steps.check_release.outputs.should_build == 'true'
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Setup Flutter
+        if: steps.check_release.outputs.should_build == 'true'
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.1'
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        if: steps.check_release.outputs.should_build == 'true'
+        run: flutter pub get
+
+      - name: Decode Morphe Keystore
+        if: steps.check_release.outputs.should_build == 'true'
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 --decode > android/app/morphe.p12
+
+      - name: Build Split APKs
+        if: steps.check_release.outputs.should_build == 'true'
+        run: |
+          flutter build apk --release --split-per-abi --dart-define=ENABLE_UPDATE_CHECK=true
+
+      - name: Sign APKs with Morphe Keystore
+        if: steps.check_release.outputs.should_build == 'true'
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          ANDROID_SDK_ROOT=$ANDROID_HOME
+          BUILD_TOOLS_VERSION=$(ls -1 "$ANDROID_SDK_ROOT/build-tools" | sort -V | tail -n 1)
+          APKSIGNER="$ANDROID_SDK_ROOT/build-tools/$BUILD_TOOLS_VERSION/apksigner"
+          
+          mkdir -p release-apks
+          
+          for apk in build/app/outputs/flutter-apk/app-*-release.apk; do
+            arch=$(basename "$apk" | sed -e 's/app-//' -e 's/-release.apk//')
+            out="release-apks/plezy-${arch}.apk"
+            echo "Signing $apk -> $out"
+            
+            $APKSIGNER sign --ks android/app/morphe.p12 \
+              --ks-type PKCS12 \
+              --ks-pass "pass:$KEYSTORE_PASSWORD" \
+              --ks-key-alias "$KEY_ALIAS" \
+              --key-pass "pass:$KEY_PASSWORD" \
+              --out "$out" \
+              "$apk"
+              
+            $APKSIGNER verify --verbose "$out"
+          done
+
+      - name: Publish Release with Standalone Signed APKs
+        if: steps.check_release.outputs.should_build == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ steps.check_release.outputs.tag }}"
+          UPSTREAM_TAG="${{ steps.upstream.outputs.tag }}"
+          NOTES=$(cat /tmp/upstream_notes.md 2>/dev/null || echo "Custom automated build of Plezy for Android TV / NVIDIA Shield TV")
+          
+          if gh release view "$TAG" &>/dev/null; then
+            echo "Release $TAG exists. Updating APK assets..."
+            gh release upload "$TAG" release-apks/*.apk --clobber
+          else
+            echo "Creating release $TAG..."
+            gh release create "$TAG" release-apks/*.apk \
+              --title "Plezy $TAG (Morphe Signed for Shield TV)" \
+              --notes "Custom build of Plezy $TAG (based on upstream $UPSTREAM_TAG) signed with Morphe.keystore for Shield TV in-place OTA updates.
+              
+            ### Custom Fork Enhancements:
+            - **Plex Classic Theme:** Iconic Obsidian Slate with signature Plex Amber Gold accent (\`#E5A00D\`).
+            - **Cinema Crimson Theme:** Deep cinema dark with vivid Netflix Red accent (\`#E50914\`).
+            - **Moonlight Theme:** Deep OLED night slate (\`#0B132B\` / \`#162234\`) with Moonlight cyan accent (\`#38BDF8\`).
+            - **Material You Dynamic Theme:** Ambient tonal palettes (\`#101418\` / \`#818CF8\`).
+            - **Media Quality Format Badges:** Infuse/Plex-style pill badges on TV and mobile detail screens (4K, Dolby Vision, HDR10, Atmos, DTS-HD).
+            - **Pre-Configured Automation:** Pre-seeded with Plex direct connect, Overseerr auto-auth, and Home Assistant webhook integration.
+            - **In-Place Shield TV OTA:** Automatic in-app update checks directly downloading signed APKs.
+            
+            ### Upstream Release Notes:
+            $NOTES"
+          fi

@@ -141,6 +141,46 @@ class MonoPalette {
     accent: Color(0xFF1F6B6B),
   );
 
+  /// Deep midnight navy with Moonlight cyan accent.
+  static const moonlight = MonoPalette(
+    bg: Color(0xFF0B132B),
+    surface: Color(0xFF162234),
+    outline: Color(0x3338BDF8),
+    text: Color(0xFFF8FAFC),
+    textMuted: Color(0xB394A3B8),
+    accent: Color(0xFF38BDF8),
+  );
+
+  /// M3 deep tonal dark surface with Material You Periwinkle accent.
+  static const materialYou = MonoPalette(
+    bg: Color(0xFF101418),
+    surface: Color(0xFF1B2228),
+    outline: Color(0x33818CF8),
+    text: Color(0xFFE2E8F0),
+    textMuted: Color(0xB3A0AEC0),
+    accent: Color(0xFF818CF8),
+  );
+
+  /// Official Plex obsidian slate with iconic Plex Amber Gold accent.
+  static const plexAmber = MonoPalette(
+    bg: Color(0xFF131518),
+    surface: Color(0xFF1E2228),
+    outline: Color(0x40E5A00D),
+    text: Color(0xFFF3F4F6),
+    textMuted: Color(0x99D1D5DB),
+    accent: Color(0xFFE5A00D),
+  );
+
+  /// Pure cinema dark slate with vivid Cinema Red accent.
+  static const cinemaCrimson = MonoPalette(
+    bg: Color(0xFF0C0C0E),
+    surface: Color(0xFF16161A),
+    outline: Color(0x40E50914),
+    text: Color(0xFFF8F9FA),
+    textMuted: Color(0x99A1A1AA),
+    accent: Color(0xFFE50914),
+  );
+
   Brightness get brightness => ThemeData.estimateBrightnessForColor(bg);
 
   /// [bg] or white, whichever contrasts more with [accent]. The pair is never

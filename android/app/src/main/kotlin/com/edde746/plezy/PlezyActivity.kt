@@ -35,6 +35,7 @@ import com.edde746.plezy.mpv.MpvPlayerPlugin
 import com.edde746.plezy.shared.AssistiveTechnologyMonitor
 import com.edde746.plezy.shared.DeviceQuirks
 import com.edde746.plezy.shared.MediaCodecQuery
+import com.edde746.plezy.shared.ShieldMemoryOptimizer
 import com.edde746.plezy.shared.ThemeHelper
 import com.edde746.plezy.watchnext.WatchNextPlugin
 import io.flutter.embedding.android.FlutterActivity
@@ -85,7 +86,10 @@ class PlezyActivity : FlutterActivity() {
 
     // Mirrors DevicePerformance._lowMemThresholdBytes (2252 MiB): nominal
     // "2GB" devices report totalMem slightly above 2 GiB after carve-outs.
-    private const val LOW_MEM_THRESHOLD_BYTES = 2252L shl 20
+    // Mirrors DevicePerformance._lowMemThresholdBytes (3200 MiB): includes 2GB
+    // boxes and 3GB Android TV devices (e.g. NVIDIA Shield TV ~2946 MiB) where
+    // 4K Dolby Vision hardware decode + OSD planes need maximum native RAM headroom.
+    private const val LOW_MEM_THRESHOLD_BYTES = 3200L shl 20
 
     // Configuration bits only a fold/unfold or display switch flips (a
     // subset of the android:configChanges set that keeps this activity alive
@@ -881,6 +885,42 @@ class PlezyActivity : FlutterActivity() {
         "getDeviceName" -> result.success(getDeviceName())
         "getPerformanceSignals" -> result.success(getPerformanceSignals())
         "getVideoDecodeCapabilities" -> result.success(MediaCodecQuery.hardwareVideoDecodeSupport())
+        "trimBackgroundMemory" -> {
+          exitDiagnosticsExecutor.execute {
+            val report = ShieldMemoryOptimizer.trimBackgroundProcesses(this@PlezyActivity)
+            runOnUiThread {
+              result.success(report)
+            }
+          }
+        }
+        "installApk" -> {
+          val filePath = call.argument<String>("filePath") ?: (call.arguments as? String)
+          if (filePath.isNullOrBlank()) {
+            result.error("INVALID_ARGUMENT", "Missing filePath", null)
+            return@setMethodCallHandler
+          }
+          try {
+            val file = java.io.File(filePath)
+            if (!file.exists()) {
+              result.error("FILE_NOT_FOUND", "APK file does not exist: $filePath", null)
+              return@setMethodCallHandler
+            }
+            val uri = androidx.core.content.FileProvider.getUriForFile(
+              this,
+              "${applicationContext.packageName}.fileprovider",
+              file
+            )
+            val installIntent = Intent(Intent.ACTION_VIEW).apply {
+              setDataAndType(uri, "application/vnd.android.package-archive")
+              addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            startActivity(installIntent)
+            result.success(true)
+          } catch (e: Exception) {
+            Log.e(TAG, "Failed to launch APK installer", e)
+            result.error("INSTALL_FAILED", e.message, null)
+          }
+        }
         "getBackgroundWorkSignals" -> result.success(
           BackgroundWorkClassifier.toMap(BackgroundWorkDiagnostics.read(this))
         )

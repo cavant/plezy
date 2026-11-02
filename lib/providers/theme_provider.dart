@@ -141,6 +141,10 @@ class ThemeProvider extends ChangeNotifier with DisposableChangeNotifierMixin, W
     settings.ThemeMode.forest => MonoPalette.forest,
     settings.ThemeMode.plum => MonoPalette.plum,
     settings.ThemeMode.paper => MonoPalette.paper,
+    settings.ThemeMode.moonlight => MonoPalette.moonlight,
+    settings.ThemeMode.materialYou => MonoPalette.materialYou,
+    settings.ThemeMode.plexAmber => MonoPalette.plexAmber,
+    settings.ThemeMode.cinemaCrimson => MonoPalette.cinemaCrimson,
     settings.ThemeMode.custom => customPalette,
   };
 
@@ -259,6 +263,10 @@ class ThemeProvider extends ChangeNotifier with DisposableChangeNotifierMixin, W
     settings.ThemeMode.forest ||
     settings.ThemeMode.plum ||
     settings.ThemeMode.paper => Symbols.palette_rounded,
+    settings.ThemeMode.moonlight => Symbols.nightlight_rounded,
+    settings.ThemeMode.materialYou => Symbols.palette_rounded,
+    settings.ThemeMode.plexAmber => Symbols.theaters_rounded,
+    settings.ThemeMode.cinemaCrimson => Symbols.movie_filter_rounded,
     settings.ThemeMode.custom => Symbols.format_paint_rounded,
   };
 }

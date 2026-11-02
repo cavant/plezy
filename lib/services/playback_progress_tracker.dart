@@ -10,6 +10,7 @@ import '../media/media_server_client.dart';
 import '../media/media_source_info.dart';
 import '../media/watch_progress.dart';
 import 'offline_watch_sync_service.dart';
+import 'home_assistant_sync_service.dart';
 import 'playback_report_session.dart';
 import 'settings_service.dart';
 import 'track_selection_service.dart';
@@ -441,9 +442,20 @@ class PlaybackProgressTracker {
       attemptedDuration = duration;
 
       // Don't send progress if no duration (not ready)
-      if (duration.inMilliseconds == 0) {
+      if (duration.inMilliseconds == 0 && state != 'stopped') {
         return;
       }
+
+      // Sync playback event to Home Assistant webhook
+      unawaited(
+        HomeAssistantSyncService.instance.reportEvent(
+          state: state,
+          metadata: metadata,
+          position: position,
+          duration: duration,
+          playerType: player.playerType,
+        ),
+      );
 
       if (isOffline) {
         // There is no backend session to terminate offline. Do not turn a
