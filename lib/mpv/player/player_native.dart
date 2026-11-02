@@ -537,6 +537,13 @@ class PlayerNative extends PlayerBase {
       // offset. FFmpeg's default (-3) can skip much of it before decoding.
       // Keep this file-local and append so other demuxer options survive.
       if (isLive && startLivePlaylistFromBeginning) 'demuxer-lavf-o-append=live_start_index=0',
+      // A live stream arrives at 1x, so mpv's defaults — start at the first
+      // decodable frame, leave a stall once 1 s is buffered — ride the live
+      // edge with one segment of headroom and stall on every segment that
+      // lands late (#2711). Start and resume with three 2 s segments buffered
+      // instead, the hold-back HLS asks of clients (RFC 8216 §6.3.3). A
+      // runtime write (Watch Together's host value) still overrides it.
+      if (isLive) ...const ['cache-pause-initial=yes', 'cache-pause-wait=6'],
     ];
     // Always the 4-argument form (`loadfile <url> replace <index> <options>`),
     // which needs mpv >= 0.38: 0.37 has no index parameter and rejects the
@@ -884,7 +891,18 @@ class PlayerNative extends PlayerBase {
     if (updatesDvLog) value = _normalizeBoolProperty(value);
 
     await _ensureInitialized();
-    await invoke('setProperty', {'name': name, 'value': value});
+    try {
+      await invoke('setProperty', {'name': name, 'value': value});
+    } on PlatformException catch (e) {
+      // This player's dispose began while the write was in flight, and the
+      // core answered for that teardown (NOT_INITIALIZED, or a refusal from
+      // the session being released): there is nothing left to apply the
+      // value to, which is what the guard below already concludes on success.
+      // A live player still reports every refusal to its caller.
+      if (!_nativeCoreUnavailable) rethrow;
+      appLogger.d('MPV: $name write ended by player teardown (${e.code})');
+      return;
+    }
     if (_nativeCoreUnavailable) return;
     if (updatesDvMode) _dvConversionMode = value;
     if (updatesDvLog) _dvConversionLog = value;
@@ -1043,11 +1061,15 @@ class PlayerNative extends PlayerBase {
   @override
   bool get audioPassthroughActive => _passthroughActive;
 
-  /// Codecs the platform can take as a bitstream. On Apple platforms
-  /// compressed audio goes through the system Dolby decoder
-  /// ([usesAppleAudioOutput]), which only handles Dolby Digital (Plus); a DTS
-  /// or TrueHD entry would just cost an output probe before decoding to PCM.
-  /// Windows and Linux do real device passthrough for the full list.
+  /// Codecs the platform can take as a bitstream. On macOS compressed audio
+  /// goes through the system Dolby decoder ([usesAppleAudioOutput]), which
+  /// only handles Dolby Digital (Plus); a DTS or TrueHD entry would just cost
+  /// an output probe before decoding to PCM. Windows and Linux do real device
+  /// passthrough for the full list.
+  ///
+  /// iPhone, iPad and Apple TV ask their plugin instead: from 26 it adds
+  /// TrueHD and DTS-HD for mpv-build's spatial output, which renders TrueHD
+  /// Atmos and DTS:X as Apple spatial audio.
   ///
   /// Android does not use this list: mpv's audiotrack AO only opens stereo
   /// IEC 61937 tracks at the 48kHz mixer rate, so naming a codec the route
@@ -1056,7 +1078,7 @@ class PlayerNative extends PlayerBase {
   static String get _passthroughCodecs => usesAppleAudioOutput ? 'ac3,eac3' : 'ac3,eac3,dts,dts-hd,truehd';
 
   Future<String> _resolvePassthroughCodecs() async {
-    if (!Platform.isAndroid) return _passthroughCodecs;
+    if (!Platform.isAndroid && !Platform.isIOS) return _passthroughCodecs;
     try {
       return await invoke<String>('getAudioSpdifCodecs') ?? '';
     } catch (error, stackTrace) {
@@ -1156,7 +1178,7 @@ class PlayerNative extends PlayerBase {
     bool forceNormalization = false,
   }) async {
     if (_nativeCoreUnavailable) return;
-    // Normalization wins over passthrough: loudnorm is a filter and filters
+    // Normalization wins over passthrough: it is an audio filter and filters
     // cannot process a bitstream, so honouring the user's normalization choice
     // means decoding every track to PCM (AC3/DTS/TrueHD included). mpv also
     // cannot scaletempo compressed audio, and the stereo limit is a promise
@@ -1170,10 +1192,10 @@ class PlayerNative extends PlayerBase {
         !target.normalization;
     final normalizationShouldBeActive = target.normalization;
 
-    // Ordering keeps loudnorm off a bitstream in both directions: leave
-    // passthrough before `af` is written below, and when normalization turns
-    // off with passthrough requested, `af` is cleared before `audio-spdif` is
-    // rewritten at the end.
+    // Ordering keeps the normalization filter off a bitstream in both
+    // directions: leave passthrough before `af` is written below, and when
+    // normalization turns off with passthrough requested, `af` is cleared
+    // before `audio-spdif` is rewritten at the end.
     if (_passthroughActive && !passthroughShouldBeActive) {
       await _applyPassthrough(false);
     }

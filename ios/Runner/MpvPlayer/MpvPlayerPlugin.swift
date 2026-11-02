@@ -99,6 +99,8 @@ class MpvPlayerPlugin: NSObject, FlutterPlugin, FlutterStreamHandler, MpvPluginS
       handleSetLogLevel(call: call, result: result)
     case "getAudioRenderingMode":
       result(Self.audioRenderingMode())
+    case "getAudioSpdifCodecs":
+      result(MpvPlayerCoreBase.audioSpdifCodecs)
     default:
       result(FlutterMethodNotImplemented)
     }
@@ -507,4 +509,5 @@ extension MpvPlayerPlugin: MpvPipDelegate {
 
   var isPipPlaying: Bool { !(playerCore?.isPaused ?? true) }
   var pipDuration: Double { playerCore?.duration ?? 0 }
+  var pipPosition: Double { playerCore?.timePos ?? 0 }
 }

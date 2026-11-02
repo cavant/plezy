@@ -248,7 +248,7 @@ class AgentSettingsCommands {
         if (exo || !ShaderService.isPlatformSupported) {
           return 'Shaders are unavailable on the current platform or player backend.';
         }
-      case 'mpv_config_text' || 'mpv_config_presets' || 'deinterlace' || 'subtitle_use_margins':
+      case 'mpv_config_text' || 'mpv_config_presets' || 'deinterlace_mode' || 'subtitle_use_margins':
         if (exo) return 'This setting requires the mpv backend.';
       case 'subtitle_render_resolution':
         if (!Platform.isAndroid && !Platform.isIOS && !Platform.isMacOS) {
@@ -359,7 +359,7 @@ class AgentSettingsCommands {
     'selected_external_player',
     'android_use_exoplayer',
     'playback_buffer_tier',
-    'deinterlace',
+    'deinterlace_mode',
     'player_always_on_top',
     'match_refresh_rate',
     'match_dynamic_range',
@@ -377,12 +377,7 @@ class AgentSettingsCommands {
     final reason = unsupportedReason(pref.key, context);
     var choices = pref.jsonChoices;
     if (pref == SettingsService.startupSection) {
-      choices = [
-        NavigationTabId.discover.name,
-        NavigationTabId.libraries.name,
-        NavigationTabId.liveTv.name,
-        NavigationTabId.search.name,
-      ];
+      choices = [for (final id in startupSectionTabs) id.name];
     }
     if (pref == SettingsService.subtitleRenderResolution &&
         (Platform.isIOS || Platform.isMacOS || Platform.isAndroid)) {
@@ -416,7 +411,7 @@ class AgentSettingsCommands {
             pref == SettingsService.subtitleBackgroundColor)
           'format': '#RRGGBB',
         if (pref == SettingsService.subtitleSearchLanguage) 'format': 'ISO 639 language code or null',
-        if (pref == SettingsService.customRelayUrl)
+        if (pref == SettingsService.watchPartyRelayUrl)
           'format': 'HTTP(S) base URL without user info, query or fragment; null uses the default relay',
         if (pref.jsonType == 'string' || pref.jsonType == 'string|null') 'maxUtf8Bytes': maxResourceBytes,
         if (pref is StringListPref) ...{'items': 'unique nonempty identifiers', 'uniqueItems': true},
@@ -426,7 +421,7 @@ class AgentSettingsCommands {
       if (pref == SettingsService.crashReporting)
         'note': 'Controls event submission; reporting must also be compiled into this build.',
       if (pref == SettingsService.directPlayCoveredQuality) 'note': 'Only Plex uses this startup quality decision.',
-      if (pref == SettingsService.customRelayUrl || pref == SettingsService.mpvConfigText)
+      if (pref == SettingsService.watchPartyRelayUrl || pref == SettingsService.mpvConfigText)
         'valueRequiresExplicitGet': true,
     };
   }
