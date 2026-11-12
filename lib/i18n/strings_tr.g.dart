@@ -115,8 +115,8 @@ class _Translations$appIcon$tr extends Translations$appIcon$en {
 	@override String get title => 'Uygulama simgesi';
 	@override String get defaultIcon => 'Varsayılan';
 	@override String get current => 'Mevcut simge';
-	@override String get locked => 'Supporter avantajı';
-	@override String get lockedHint => 'Alternatif simgeler bir Supporter avantajıdır.';
+	@override String get locked => 'Tema ve Simge Paketi\'ne dahil';
+	@override String get lockedHint => 'Alternatif simgeler Tema ve Simge Paketi\'ne dahildir.';
 	@override String get changeFailed => 'Uygulama simgesi değiştirilemedi';
 	@override String get launcherHint => 'Yeni simge, Plezy\'den çıktığınızda ana ekranınızda görünür.';
 	@override String get tvLauncherHint => 'Yeni banner, Plezy\'den çıktığınızda görünür. Android TV, TV yeniden başlatılana kadar eskisini göstermeye devam edebilir.';
@@ -246,8 +246,8 @@ class _Translations$supporter$tr extends Translations$supporter$en {
 	final TranslationsTr _root; // ignore: unused_field
 
 	// Translations
-	@override String get title => 'Plezy Supporter';
-	@override String get intro => 'Plezy\'nin geliştirilmesini destekleyen ve kozmetik ekstraların kilidini açan tek seferlik bir satın alım:';
+	@override String get title => 'Tema ve Simge Paketi';
+	@override String get intro => 'Kozmetik ekstralar ekleyen isteğe bağlı, tek seferlik bir satın alım:';
 	@override String get presetThemes => 'Hazır temalar';
 	@override String get presetThemesDescription => 'Kor, Buzul, Orman, Erik ve Kâğıt';
 	@override String get customTheme => 'Özel tema';
@@ -258,11 +258,11 @@ class _Translations$supporter$tr extends Translations$supporter$en {
 	@override String get loadingPrice => 'Fiyat yükleniyor...';
 	@override String get restore => 'Satın Alımları Geri Yükle';
 	@override String get pending => 'Satın alımınız ödeme veya onay bekliyor. Mağaza işlemi tamamladığı anda ekstraların kilidi açılır.';
-	@override String get thankYouTitle => 'Plezy\'yi desteklediğiniz için teşekkürler';
-	@override String get thankYouBody => 'Supporter ekstralarınızın kilidi açıldı.';
+	@override String get thankYouTitle => 'Satın aldığınız için teşekkürler';
+	@override String get thankYouBody => 'Tema ve Simge Paketi\'nin kilidi açıldı.';
 	@override String get tileSubtitle => 'Temaların ve uygulama simgelerinin kilidini tek seferlik bir satın alımla açın';
 	@override String get tileSubtitleThemesOnly => 'Temaların kilidini tek seferlik bir satın alımla açın';
-	@override String get tileUnlocked => 'Desteğiniz için teşekkürler';
+	@override String get tileUnlocked => 'Kilidi açıldı — satın aldığınız için teşekkürler';
 	@override late final _Translations$supporter$errors$tr errors = _Translations$supporter$errors$tr._(_root);
 }
 
@@ -602,6 +602,7 @@ class _Translations$settings$tr extends Translations$settings$en {
 	@override String get scopePlaybackSpeed => 'Oynatma hızı';
 	@override String get scopeShaderPreset => 'Gölgelendirici ön ayarı';
 	@override String get scopeAspectRatio => 'En-boy oranı';
+	@override String get scopeZoom => 'Yakınlaştırma';
 	@override String get scopeSyncOffsets => 'Ses ve altyazı senkronizasyonu';
 	@override String get playerScopeOff => 'Kaydetme';
 	@override String get playerScopeGlobal => 'Her yerde';
@@ -623,8 +624,8 @@ class _Translations$themeEditor$tr extends Translations$themeEditor$en {
 	@override String get customEmpty => 'Henüz oluşturulmadı';
 	@override String get editCustom => 'Özel temayı düzenle';
 	@override String get editCustomDescription => 'Her rengi kendiniz seçin';
-	@override String get locked => 'Supporter ile kilidi açın';
-	@override String get savedLocked => 'Kaydedildi — Supporter ile kilidi açılır';
+	@override String get locked => 'Tema ve Simge Paketi ile kilidi açın';
+	@override String get savedLocked => 'Kaydedildi — Tema ve Simge Paketi ile kilidi açılır';
 	@override String get title => 'Özel Tema';
 	@override String get startFrom => 'Başlangıç teması';
 	@override String get startFromDescription => 'Tüm renkleri başka bir temadan kopyalayın';
@@ -986,7 +987,6 @@ class _Translations$videoControls$tr extends Translations$videoControls$en {
 	@override String get rotationLockButton => 'Döndürme kilidi';
 	@override String get lockScreen => 'Ekranı kilitle';
 	@override String get screenLockButton => 'Ekran kilidi';
-	@override String get longPressToUnlock => 'Kilidi açmak için uzun basın';
 	@override String get timelineSlider => 'Video zaman çubuğu';
 	@override String get volumeSlider => 'Ses seviyesi';
 	@override String endsAt({required Object time}) => 'Bitiş saati: ${time}';
@@ -1008,6 +1008,7 @@ class _Translations$videoControls$tr extends Translations$videoControls$en {
 	@override String get subtitleDownloaded => 'Altyazı indirildi';
 	@override String get subtitleDownloadedNotApplied => 'Altyazı indirildi ancak seçilemedi';
 	@override String get subtitleDownloadFailed => 'Altyazı indirilemedi';
+	@override String get subtitleDownloadTimedOut => 'Altyazı zamanında görünmedi. İndirme başarısız olmuş olabilir';
 	@override String get searchLanguages => 'Dillerde ara...';
 	@override String get skipIntro => 'İntroyu atla';
 	@override String get skipCredits => 'Jeneriği atla';
@@ -2541,11 +2542,11 @@ class _Translations$supporter$errors$tr extends Translations$supporter$errors$en
 
 	// Translations
 	@override String get storeUnavailable => 'Satın alımlar kullanılamıyor. Mağazada oturum açtığınızdan ve bu cihazda satın alımlara izin verildiğinden emin olun.';
-	@override String get productNotFound => 'Supporter satın alımı şu anda mağazanızda kullanılamıyor.';
+	@override String get productNotFound => 'Tema ve Simge Paketi şu anda mağazanızda kullanılamıyor.';
 	@override String get productQueryFailed => 'Fiyat yüklenemedi. Bağlantınızı kontrol edip tekrar deneyin.';
 	@override String get purchaseFailed => 'Satın alım gerçekleşmedi. Tekrar deneyin.';
 	@override String get restoreFailed => 'Satın alımınızı geri yüklemek için mağazaya ulaşılamadı. Tekrar deneyin.';
-	@override String get nothingToRestore => 'Bu mağaza hesabı için Supporter satın alımı bulunamadı.';
+	@override String get nothingToRestore => 'Bu mağaza hesabı için Tema ve Simge Paketi satın alımı bulunamadı.';
 }
 
 // Path: themeEditor.slots
@@ -3044,6 +3045,8 @@ class _Translations$explore$detail$tr extends Translations$explore$detail$en {
 	@override String get watchOn => 'İzle';
 	@override String get watchTrailer => 'Fragmanı izle';
 	@override String openOn({required Object site}) => '${site}\'de aç';
+	@override String get trailerUnavailable => 'Bu cihazda fragman açılamadı';
+	@override String get linkUnavailable => 'Bu cihazda bağlantı açılamadı';
 	@override String get crew => 'Ekip';
 	@override String get ratings => 'Puanlar';
 	@override String get schedule => 'Yayın takvimi';
@@ -3399,8 +3402,8 @@ extension on TranslationsTr {
 			'appIcon.title' => 'Uygulama simgesi',
 			'appIcon.defaultIcon' => 'Varsayılan',
 			'appIcon.current' => 'Mevcut simge',
-			'appIcon.locked' => 'Supporter avantajı',
-			'appIcon.lockedHint' => 'Alternatif simgeler bir Supporter avantajıdır.',
+			'appIcon.locked' => 'Tema ve Simge Paketi\'ne dahil',
+			'appIcon.lockedHint' => 'Alternatif simgeler Tema ve Simge Paketi\'ne dahildir.',
 			'appIcon.changeFailed' => 'Uygulama simgesi değiştirilemedi',
 			'appIcon.launcherHint' => 'Yeni simge, Plezy\'den çıktığınızda ana ekranınızda görünür.',
 			'appIcon.tvLauncherHint' => 'Yeni banner, Plezy\'den çıktığınızda görünür. Android TV, TV yeniden başlatılana kadar eskisini göstermeye devam edebilir.',
@@ -3530,8 +3533,8 @@ extension on TranslationsTr {
 			'update.viewRelease' => 'Sürümü Görüntüle',
 			'update.latestVersion' => 'En son sürümü kullanıyorsunuz',
 			'update.checkFailed' => 'Güncellemeler kontrol edilemedi',
-			'supporter.title' => 'Plezy Supporter',
-			'supporter.intro' => 'Plezy\'nin geliştirilmesini destekleyen ve kozmetik ekstraların kilidini açan tek seferlik bir satın alım:',
+			'supporter.title' => 'Tema ve Simge Paketi',
+			'supporter.intro' => 'Kozmetik ekstralar ekleyen isteğe bağlı, tek seferlik bir satın alım:',
 			'supporter.presetThemes' => 'Hazır temalar',
 			'supporter.presetThemesDescription' => 'Kor, Buzul, Orman, Erik ve Kâğıt',
 			'supporter.customTheme' => 'Özel tema',
@@ -3542,17 +3545,17 @@ extension on TranslationsTr {
 			'supporter.loadingPrice' => 'Fiyat yükleniyor...',
 			'supporter.restore' => 'Satın Alımları Geri Yükle',
 			'supporter.pending' => 'Satın alımınız ödeme veya onay bekliyor. Mağaza işlemi tamamladığı anda ekstraların kilidi açılır.',
-			'supporter.thankYouTitle' => 'Plezy\'yi desteklediğiniz için teşekkürler',
-			'supporter.thankYouBody' => 'Supporter ekstralarınızın kilidi açıldı.',
+			'supporter.thankYouTitle' => 'Satın aldığınız için teşekkürler',
+			'supporter.thankYouBody' => 'Tema ve Simge Paketi\'nin kilidi açıldı.',
 			'supporter.tileSubtitle' => 'Temaların ve uygulama simgelerinin kilidini tek seferlik bir satın alımla açın',
 			'supporter.tileSubtitleThemesOnly' => 'Temaların kilidini tek seferlik bir satın alımla açın',
-			'supporter.tileUnlocked' => 'Desteğiniz için teşekkürler',
+			'supporter.tileUnlocked' => 'Kilidi açıldı — satın aldığınız için teşekkürler',
 			'supporter.errors.storeUnavailable' => 'Satın alımlar kullanılamıyor. Mağazada oturum açtığınızdan ve bu cihazda satın alımlara izin verildiğinden emin olun.',
-			'supporter.errors.productNotFound' => 'Supporter satın alımı şu anda mağazanızda kullanılamıyor.',
+			'supporter.errors.productNotFound' => 'Tema ve Simge Paketi şu anda mağazanızda kullanılamıyor.',
 			'supporter.errors.productQueryFailed' => 'Fiyat yüklenemedi. Bağlantınızı kontrol edip tekrar deneyin.',
 			'supporter.errors.purchaseFailed' => 'Satın alım gerçekleşmedi. Tekrar deneyin.',
 			'supporter.errors.restoreFailed' => 'Satın alımınızı geri yüklemek için mağazaya ulaşılamadı. Tekrar deneyin.',
-			'supporter.errors.nothingToRestore' => 'Bu mağaza hesabı için Supporter satın alımı bulunamadı.',
+			'supporter.errors.nothingToRestore' => 'Bu mağaza hesabı için Tema ve Simge Paketi satın alımı bulunamadı.',
 			'settings.title' => 'Ayarlar',
 			'settings.supportDeveloper' => 'Plezy\'yi Destekleyin',
 			'settings.supportDeveloperDescription' => 'Geliştirmeyi fonlamak için Liberapay üzerinden bağış yapın',
@@ -3882,6 +3885,7 @@ extension on TranslationsTr {
 			'settings.scopePlaybackSpeed' => 'Oynatma hızı',
 			'settings.scopeShaderPreset' => 'Gölgelendirici ön ayarı',
 			'settings.scopeAspectRatio' => 'En-boy oranı',
+			'settings.scopeZoom' => 'Yakınlaştırma',
 			'settings.scopeSyncOffsets' => 'Ses ve altyazı senkronizasyonu',
 			'settings.playerScopeOff' => 'Kaydetme',
 			'settings.playerScopeGlobal' => 'Her yerde',
@@ -3894,8 +3898,8 @@ extension on TranslationsTr {
 			'themeEditor.customEmpty' => 'Henüz oluşturulmadı',
 			'themeEditor.editCustom' => 'Özel temayı düzenle',
 			'themeEditor.editCustomDescription' => 'Her rengi kendiniz seçin',
-			'themeEditor.locked' => 'Supporter ile kilidi açın',
-			'themeEditor.savedLocked' => 'Kaydedildi — Supporter ile kilidi açılır',
+			'themeEditor.locked' => 'Tema ve Simge Paketi ile kilidi açın',
+			'themeEditor.savedLocked' => 'Kaydedildi — Tema ve Simge Paketi ile kilidi açılır',
 			'themeEditor.title' => 'Özel Tema',
 			'themeEditor.startFrom' => 'Başlangıç teması',
 			'themeEditor.startFromDescription' => 'Tüm renkleri başka bir temadan kopyalayın',
@@ -3906,9 +3910,9 @@ extension on TranslationsTr {
 			'themeEditor.slots.outline' => 'Kenarlık',
 			'themeEditor.slots.text' => 'Metin',
 			'themeEditor.slots.textMuted' => 'İkincil metin',
-			'themeEditor.slots.accent' => 'Vurgu',
 			_ => null,
 		} ?? switch (path) {
+			'themeEditor.slots.accent' => 'Vurgu',
 			'themeEditor.opacity' => 'Opaklık',
 			'themeEditor.hexHint' => '#RRGGBB veya #AARRGGBB',
 			'themeEditor.fromOtherThemes' => 'Diğer temalardan',
@@ -4204,7 +4208,6 @@ extension on TranslationsTr {
 			'videoControls.rotationLockButton' => 'Döndürme kilidi',
 			'videoControls.lockScreen' => 'Ekranı kilitle',
 			'videoControls.screenLockButton' => 'Ekran kilidi',
-			'videoControls.longPressToUnlock' => 'Kilidi açmak için uzun basın',
 			'videoControls.timelineSlider' => 'Video zaman çubuğu',
 			'videoControls.volumeSlider' => 'Ses seviyesi',
 			'videoControls.endsAt' => ({required Object time}) => 'Bitiş saati: ${time}',
@@ -4233,6 +4236,7 @@ extension on TranslationsTr {
 			'videoControls.subtitleDownloaded' => 'Altyazı indirildi',
 			'videoControls.subtitleDownloadedNotApplied' => 'Altyazı indirildi ancak seçilemedi',
 			'videoControls.subtitleDownloadFailed' => 'Altyazı indirilemedi',
+			'videoControls.subtitleDownloadTimedOut' => 'Altyazı zamanında görünmedi. İndirme başarısız olmuş olabilir',
 			'videoControls.searchLanguages' => 'Dillerde ara...',
 			'videoControls.skipIntro' => 'İntroyu atla',
 			'videoControls.skipCredits' => 'Jeneriği atla',
@@ -4420,9 +4424,9 @@ extension on TranslationsTr {
 			'profiles.pinsDontMatch' => 'PIN\'ler eşleşmiyor',
 			'profiles.tokenIdentityMismatch' => 'Plex profil belirtecinin beklenmeyen bir sunucuya ait olduğu belirlendi',
 			'connections.sectionTitle' => 'Bağlantılar',
-			'connections.addConnection' => 'Bağlantı ekle',
 			_ => null,
 		} ?? switch (path) {
+			'connections.addConnection' => 'Bağlantı ekle',
 			'connections.addConnectionSubtitleNoProfile' => 'Plex ile giriş yapın veya bir Jellyfin ya da Emby sunucusu bağlayın',
 			'connections.addConnectionSubtitleScoped' => ({required Object displayName}) => '${displayName} profiline ekle: Plex, Jellyfin, Emby veya başka bir profil bağlantısı',
 			'connections.sessionExpiredOne' => ({required Object name}) => '${name} için oturum süresi doldu',
@@ -4837,6 +4841,8 @@ extension on TranslationsTr {
 			'explore.detail.watchOn' => 'İzle',
 			'explore.detail.watchTrailer' => 'Fragmanı izle',
 			'explore.detail.openOn' => ({required Object site}) => '${site}\'de aç',
+			'explore.detail.trailerUnavailable' => 'Bu cihazda fragman açılamadı',
+			'explore.detail.linkUnavailable' => 'Bu cihazda bağlantı açılamadı',
 			'explore.detail.crew' => 'Ekip',
 			'explore.detail.ratings' => 'Puanlar',
 			'explore.detail.schedule' => 'Yayın takvimi',
@@ -4932,11 +4938,11 @@ extension on TranslationsTr {
 			'liveTv.recordSettings.anyTime' => 'Herhangi bir saatte kaydet',
 			'liveTv.recordSettings.skipInLibrary' => 'Kitaplıkta zaten bulunan bölümleri atla',
 			'liveTv.recordSettings.keepUpTo' => 'Saklanacak bölüm sayısı',
+			_ => null,
+		} ?? switch (path) {
 			'liveTv.recordSettings.keepUpToHint' => '0 tüm bölümleri saklar',
 			'liveTv.startingInMinutes' => ({required Object minutes}) => '${minutes} dk içinde başlıyor',
 			'liveTv.dayAtTime' => ({required Object day, required Object time}) => '${day} saat ${time}',
-			_ => null,
-		} ?? switch (path) {
 			'liveTv.invalidPlaybackData' => ({required Object product}) => '${product} geçersiz Canlı TV oynatma verileri döndürdü',
 			'liveTv.failedToStartChannel' => 'Canlı kanal başlatılamadı',
 			'liveTv.failedToBuildStreamUrl' => 'Akış URL\'si oluşturulamadı',
@@ -5446,11 +5452,11 @@ extension on TranslationsTr {
 			'performanceOverlay.decoderMediatekHw' => 'MediaTek Donanım',
 			'performanceOverlay.decoderExynosHw' => 'Exynos Donanım',
 			'performanceOverlay.decoderSoftware' => 'Yazılım',
+			_ => null,
+		} ?? switch (path) {
 			'performanceOverlay.decoderHardware' => 'Donanım',
 			'performanceOverlay.tunnelingActive' => 'Etkin',
 			'performanceOverlay.dvRpuFailed' => ({required Object converted, required Object failures}) => '${converted} (${failures} başarısız)',
-			_ => null,
-		} ?? switch (path) {
 			'externalPlayer.title' => 'Harici Oynatıcı',
 			'externalPlayer.useExternalPlayer' => 'Harici Oynatıcı Kullan',
 			'externalPlayer.useExternalPlayerDescription' => 'Videoları başka bir uygulamada açın',

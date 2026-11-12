@@ -106,7 +106,8 @@ class WatchTogetherProvider extends ChangeNotifier {
   bool _attached = false;
 
   /// Why the user is away from the player (the app in the background, a car
-  /// that forbids video): the room stops waiting for them meanwhile.
+  /// that forbids video, the profile picker over it): the room stops waiting
+  /// for them meanwhile.
   final Set<_Away> _away = {};
   bool get _isAway => _away.isNotEmpty;
   bool _playBlocked = false;
@@ -115,6 +116,10 @@ class WatchTogetherProvider extends ChangeNotifier {
   bool _notifyScheduled = false;
   String? _openedKey;
   int _shareGeneration = 0;
+
+  /// Bumped by every [choose]: the SDK drops an earlier choice's pending probe
+  /// for a later one, so only the latest choice may act on its refusal.
+  int _chooseGeneration = 0;
 
   WatchPlayerHooks? _playerHooks;
   Object? _playerHooksOwner;
@@ -132,7 +137,13 @@ class WatchTogetherProvider extends ChangeNotifier {
     required String client,
     required String name,
     required owp.Resolver<WatchCopy>? resolver,
-  }) => owp.WatchParty<WatchCopy>(relays: relays, client: client, name: name, resolver: resolver);
+  }) => owp.WatchParty<WatchCopy>(
+    relays: relays,
+    client: client,
+    name: name,
+    resolver: resolver,
+    connect: relayConnector(relays),
+  );
 
   // ---------------------------------------------------------------------------
   // State
@@ -244,7 +255,7 @@ class WatchTogetherProvider extends ChangeNotifier {
   /// [owp.PartyException] with the SDK's code when it fails.
   Future<String> createRoom() async {
     final party = await _newParty();
-    final code = await party.create();
+    final code = await _logFailure('create', party.create());
     await _rememberRoom(code);
     _shareOpenPlayer();
     return code;
@@ -258,9 +269,22 @@ class WatchTogetherProvider extends ChangeNotifier {
     final normalized = normalizeRoomCode(code);
     if (normalized == null) throw const owp.PartyException(owp.ErrorCode.invalidCode, 'not a room code');
     final party = await _newParty();
-    await party.join(normalized, create: create);
+    await _logFailure(create ? 'join or create' : 'join', party.join(normalized, create: create));
     await _rememberRoom(normalized);
     if (create && party.state.isHost && party.state.media == null) _shareOpenPlayer();
+  }
+
+  /// Logs why a create or join failed: the user sees only the code's text.
+  Future<T> _logFailure<T>(String action, Future<T> attempt) async {
+    try {
+      return await attempt;
+    } on owp.PartyException catch (error) {
+      if (error.code != owp.ErrorCode.cancelled) {
+        final relays = _customRelayBaseUrl() == null ? 'the public relays' : 'the custom relay';
+        appLogger.w('WatchTogether: $action failed on $relays: ${error.code}: ${error.message}');
+      }
+      rethrow;
+    }
   }
 
   void _shareOpenPlayer() {
@@ -298,8 +322,7 @@ class WatchTogetherProvider extends ChangeNotifier {
     try {
       command();
     } on owp.PartyException catch (error) {
-      appLogger.d('WatchTogether: ${error.code}: ${error.message}');
-      _notify(RefusedNotice(error.code));
+      _notify(_refused(error));
     }
   }
 
@@ -318,12 +341,13 @@ class WatchTogetherProvider extends ChangeNotifier {
   /// Plays [candidate] for the room's media. False when it can't (no length,
   /// the media changed meanwhile).
   Future<bool> choose(owp.Candidate<WatchCopy> candidate) async {
+    _chooseGeneration++;
     final party = _party;
     if (party == null) return false;
     try {
       return await party.choose(candidate);
     } on owp.PartyException catch (error) {
-      _notify(RefusedNotice(error.code));
+      _notify(_refused(error));
       return false;
     }
   }
@@ -373,9 +397,8 @@ class WatchTogetherProvider extends ChangeNotifier {
     try {
       await adapter.commands.play();
     } catch (error) {
-      appLogger.d('WatchTogether: the player refused to start again: $error');
       if (_disposed || !follows(adapter)) return;
-      _notify(_blocked());
+      _notify(_blocked(error));
     }
   }
 
@@ -433,8 +456,8 @@ class WatchTogetherProvider extends ChangeNotifier {
   /// when the room asked for this file.
   ///
   /// A host shares the file with the room. A guest's player follows the room
-  /// when it opened the room's file, and else sits out so the room doesn't
-  /// wait for it.
+  /// when it opened the room's file or another version of it, and else sits
+  /// out so the room doesn't wait for it.
   void playerOpened(PlezyPlayerAdapter adapter, {required bool shareable, required bool roomLaunch}) {
     final previous = _player?.adapter;
     if (previous != null && !identical(previous, adapter)) previous.release();
@@ -463,17 +486,40 @@ class WatchTogetherProvider extends ChangeNotifier {
       notifyListeners();
       return;
     }
-    if (_state.choice?.ref == copy) {
+    final choice = _state.choice?.ref;
+    final otherVersion = choice != null && choice.serverId == copy.serverId && choice.itemId == copy.itemId;
+    if (choice == copy) {
       party.attachPlayer(adapter, copy);
       _attached = true;
-    } else if (roomLaunch && media != null && copy.item != null) {
+    } else if ((roomLaunch || otherVersion) && media != null && copy.item != null) {
+      // The room asked for this file, or the user switched the version the
+      // room picked: this file becomes the user's pick for the room's media.
       party.attachPlayer(adapter, copy);
       _attached = true;
-      unawaited(chooseCopy(copy.item!, copy.version));
+      unawaited(_chooseOpened(party, adapter));
     } else {
       _attached = false;
       unawaited(party.detachPlayer());
     }
+    notifyListeners();
+  }
+
+  /// Picks the file [adapter] has open for the room's media. When the party
+  /// refuses it (its length is unknown), the player sits out: attached to a
+  /// file the room never commands, it would keep the room waiting for it.
+  Future<void> _chooseOpened(owp.WatchParty<WatchCopy> party, PlezyPlayerAdapter adapter) async {
+    final copy = adapter.copy;
+    final epoch = party.state.room?.epoch;
+    // choose() bumps the generation before its first await.
+    final chosen = chooseCopy(copy.item!, copy.version);
+    final generation = _chooseGeneration;
+    if (await chosen) return;
+    // A later choice or a new epoch's search decides what this player follows.
+    if (_disposed || !identical(_party, party) || generation != _chooseGeneration) return;
+    if (party.state.room?.epoch != epoch || !_attached || !identical(_player?.adapter, adapter)) return;
+    _attached = false;
+    unawaited(party.detachPlayer(adapter));
+    _notify(const ChoiceFailedNotice());
     notifyListeners();
   }
 
@@ -504,6 +550,10 @@ class WatchTogetherProvider extends ChangeNotifier {
   /// The car forbids video while driving (or allows it again), as
   /// [setBackgrounded].
   void setVehicleRestricted(bool restricted) => _setAway(_Away.vehicle, restricted);
+
+  /// The resume profile picker covers the player (or a profile was chosen),
+  /// as [setBackgrounded].
+  void setAwaitingProfileSelection(bool awaiting) => _setAway(_Away.profileSelection, awaiting);
 
   void _setAway(_Away reason, bool away) {
     final wasAway = _isAway;
@@ -589,6 +639,10 @@ class WatchTogetherProvider extends ChangeNotifier {
     final previous = _state;
     final wasFollowing = isFollowing;
     _state = next;
+    if (next.connection != previous.connection) {
+      final reason = next.connection == owp.Connection.ended ? ' (${next.endReason?.name})' : '';
+      appLogger.i('WatchTogether: connection ${next.connection.name}$reason');
+    }
     if (next.connection == owp.Connection.ended || next.room?.phase != owp.Phase.playing) _playBlocked = false;
     // The room stopped the media this guest was watching with it.
     if (wasFollowing &&
@@ -639,10 +693,10 @@ class WatchTogetherProvider extends ChangeNotifier {
       ),
       owp.ParticipantJoinedEvent(:final participant) => JoinedNotice(participant.name),
       owp.ParticipantLeftEvent(:final participant) => LeftNotice(participant.name),
-      owp.ErrorEvent(:final error) => RefusedNotice(error.code),
+      owp.ErrorEvent(:final error) => _refused(error),
       owp.ResolveFailedEvent(:final error) => _resolveFailed(error),
-      owp.PlayBlockedEvent() => _blocked(),
-      owp.EndedEvent(:final reason) => _ended(reason),
+      owp.PlayBlockedEvent(:final error) => _blocked(error),
+      owp.EndedEvent(:final reason, :final error) => _ended(reason, error),
       _ => null,
     };
     if (notice != null) _notify(notice);
@@ -655,13 +709,21 @@ class WatchTogetherProvider extends ChangeNotifier {
     return const SearchFailedNotice();
   }
 
-  WatchNotice _blocked() {
+  WatchNotice _refused(owp.PartyException error) {
+    appLogger.d('WatchTogether: ${error.code}: ${error.message}');
+    return RefusedNotice(error.code);
+  }
+
+  WatchNotice _blocked(Object error) {
+    appLogger.d('WatchTogether: the player refused to start: $error');
     _playBlocked = true;
     notifyListeners();
     return const PlayBlockedNotice();
   }
 
-  WatchNotice? _ended(owp.EndReason reason) {
+  /// [error] says why a [owp.EndReason.lost] room could not be resumed.
+  WatchNotice? _ended(owp.EndReason reason, owp.PartyException? error) {
+    if (error != null) appLogger.w('WatchTogether: room lost: ${error.code}: ${error.message}');
     _attached = false;
     final party = _party;
     // A player that keeps its file open is the next party's to attach.
@@ -727,4 +789,4 @@ String _sanitizedName(String name) {
   return kept.isEmpty ? 'Plezy' : kept;
 }
 
-enum _Away { background, vehicle }
+enum _Away { background, vehicle, profileSelection }

@@ -23,6 +23,7 @@ import '../utils/content_utils.dart';
 import '../widgets/cycling_media_backdrop.dart';
 import '../widgets/hero_carousel_backdrop.dart';
 import '../widgets/optimized_media_image.dart' show ClearLogoImage, blurArtwork;
+import '../widgets/rasterized_gradient.dart';
 import '../widgets/toolbar_scrim.dart';
 import '../widgets/system_clock.dart';
 import '../providers/discover_provider.dart';
@@ -849,19 +850,23 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                           onPressed: openWatchTogether,
                           tooltip: t.watchTogether.title,
                         ),
+                        // Badges sit over the button they label, so they must
+                        // not swallow its hover and clicks (#2846).
                         if (watchTogether.isInSession && watchTogether.participantCount > 1)
                           Positioned(
                             top: 6,
                             right: 6,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                              decoration: BoxDecoration(
-                                color: colorScheme.primary,
-                                borderRadius: const BorderRadius.all(Radius.circular(8)),
-                              ),
-                              child: Text(
-                                '${watchTogether.participantCount}',
-                                style: TextStyle(color: colorScheme.onPrimary, fontSize: 10, fontWeight: .bold),
+                            child: IgnorePointer(
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                                decoration: BoxDecoration(
+                                  color: colorScheme.primary,
+                                  borderRadius: const BorderRadius.all(Radius.circular(8)),
+                                ),
+                                child: Text(
+                                  '${watchTogether.participantCount}',
+                                  style: TextStyle(color: colorScheme.onPrimary, fontSize: 10, fontWeight: .bold),
+                                ),
                               ),
                             ),
                           ),
@@ -886,13 +891,15 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                           Positioned(
                             top: 6,
                             right: 6,
-                            child: Container(
-                              width: 8,
-                              height: 8,
-                              decoration: BoxDecoration(
-                                color: Colors.green,
-                                shape: BoxShape.circle,
-                                border: Border.fromBorderSide(BorderSide(color: foregroundColor, width: 1)),
+                            child: IgnorePointer(
+                              child: Container(
+                                width: 8,
+                                height: 8,
+                                decoration: BoxDecoration(
+                                  color: Colors.green,
+                                  shape: BoxShape.circle,
+                                  border: Border.fromBorderSide(BorderSide(color: foregroundColor, width: 1)),
+                                ),
                               ),
                             ),
                           ),
@@ -1343,7 +1350,10 @@ class _DiscoverScreenState extends State<DiscoverScreen>
               ),
             ),
           ),
-          // Gradient Overlay - blends into scaffold background
+          // Gradient Overlay - blends into scaffold background. Rasterised:
+          // Impeller's GLES gradient shader over the artwork pushed raster
+          // frames past 30ms while scrolling a full-size Linux window; the
+          // strip texture keeps the hero at flat-quad cost (~2ms).
           Positioned(
             top: 0,
             left: 0,
@@ -1352,17 +1362,15 @@ class _DiscoverScreenState extends State<DiscoverScreen>
             child: Builder(
               builder: (context) {
                 final bgColor = Theme.of(context).scaffoldBackgroundColor;
-                return Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      // Reach full bg before the bottom edge so the hero
-                      // blends seamlessly into the content below and the
-                      // page dots sit on a solid band.
-                      colors: [Colors.transparent, bgColor.withValues(alpha: 0.9), bgColor, bgColor],
-                      stops: isTv ? const [0.25, 0.78, 0.94, 1.0] : const [0.5, 0.85, 0.94, 1.0],
-                    ),
+                return RasterizedGradient(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    // Reach full bg before the bottom edge so the hero
+                    // blends seamlessly into the content below and the
+                    // page dots sit on a solid band.
+                    colors: [bgColor.withValues(alpha: 0), bgColor.withValues(alpha: 0.9), bgColor, bgColor],
+                    stops: isTv ? const [0.25, 0.78, 0.94, 1.0] : const [0.5, 0.85, 0.94, 1.0],
                   ),
                 );
               },

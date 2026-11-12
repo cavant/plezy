@@ -115,8 +115,8 @@ class _Translations$appIcon$nl extends Translations$appIcon$en {
 	@override String get title => 'App-icoon';
 	@override String get defaultIcon => 'Standaard';
 	@override String get current => 'Huidig icoon';
-	@override String get locked => 'Supporter-voordeel';
-	@override String get lockedHint => 'Alternatieve iconen zijn een Supporter-voordeel.';
+	@override String get locked => 'Onderdeel van het Thema- en iconenpakket';
+	@override String get lockedHint => 'Alternatieve iconen zijn onderdeel van het Thema- en iconenpakket.';
 	@override String get changeFailed => 'Het app-icoon kon niet worden gewijzigd';
 	@override String get launcherHint => 'Het nieuwe icoon verschijnt op je beginscherm zodra je Plezy verlaat.';
 	@override String get tvLauncherHint => 'De nieuwe banner verschijnt zodra je Plezy verlaat. Android TV kan de oude blijven tonen totdat de tv opnieuw is opgestart.';
@@ -246,8 +246,8 @@ class _Translations$supporter$nl extends Translations$supporter$en {
 	final TranslationsNl _root; // ignore: unused_field
 
 	// Translations
-	@override String get title => 'Plezy Supporter';
-	@override String get intro => 'Een eenmalige aankoop die de ontwikkeling van Plezy steunt en cosmetische extra\'s ontgrendelt:';
+	@override String get title => 'Thema- en iconenpakket';
+	@override String get intro => 'Een optionele eenmalige aankoop met cosmetische extra\'s:';
 	@override String get presetThemes => 'Kant-en-klare thema\'s';
 	@override String get presetThemesDescription => 'Sintel, Gletsjer, Woud, Pruim en Papier';
 	@override String get customTheme => 'Aangepast thema';
@@ -258,11 +258,11 @@ class _Translations$supporter$nl extends Translations$supporter$en {
 	@override String get loadingPrice => 'Prijs laden...';
 	@override String get restore => 'Aankopen herstellen';
 	@override String get pending => 'Je aankoop wacht op betaling of goedkeuring. De extra\'s worden ontgrendeld zodra de store de aankoop afrondt.';
-	@override String get thankYouTitle => 'Bedankt dat je Plezy steunt';
-	@override String get thankYouBody => 'Je Supporter-extra\'s zijn ontgrendeld.';
+	@override String get thankYouTitle => 'Bedankt voor je aankoop';
+	@override String get thankYouBody => 'Het Thema- en iconenpakket is ontgrendeld.';
 	@override String get tileSubtitle => 'Ontgrendel thema\'s en app-iconen met een eenmalige aankoop';
 	@override String get tileSubtitleThemesOnly => 'Ontgrendel thema\'s met een eenmalige aankoop';
-	@override String get tileUnlocked => 'Bedankt voor je steun';
+	@override String get tileUnlocked => 'Ontgrendeld — bedankt voor je aankoop';
 	@override late final _Translations$supporter$errors$nl errors = _Translations$supporter$errors$nl._(_root);
 }
 
@@ -602,6 +602,7 @@ class _Translations$settings$nl extends Translations$settings$en {
 	@override String get scopePlaybackSpeed => 'Afspeelsnelheid';
 	@override String get scopeShaderPreset => 'Shadervoorinstelling';
 	@override String get scopeAspectRatio => 'Beeldverhouding';
+	@override String get scopeZoom => 'Zoom';
 	@override String get scopeSyncOffsets => 'Audio- en ondertitelsynchronisatie';
 	@override String get playerScopeOff => 'Niet opslaan';
 	@override String get playerScopeGlobal => 'Overal';
@@ -623,8 +624,8 @@ class _Translations$themeEditor$nl extends Translations$themeEditor$en {
 	@override String get customEmpty => 'Nog niet gemaakt';
 	@override String get editCustom => 'Aangepast thema bewerken';
 	@override String get editCustomDescription => 'Kies elke kleur zelf';
-	@override String get locked => 'Ontgrendelen met Supporter';
-	@override String get savedLocked => 'Opgeslagen — wordt ontgrendeld met Supporter';
+	@override String get locked => 'Ontgrendelen met het Thema- en iconenpakket';
+	@override String get savedLocked => 'Opgeslagen — wordt ontgrendeld met het Thema- en iconenpakket';
 	@override String get title => 'Aangepast thema';
 	@override String get startFrom => 'Beginnen vanaf';
 	@override String get startFromDescription => 'Kopieer alle kleuren van een ander thema';
@@ -986,7 +987,6 @@ class _Translations$videoControls$nl extends Translations$videoControls$en {
 	@override String get rotationLockButton => 'Rotatievergrendeling';
 	@override String get lockScreen => 'Scherm vergrendelen';
 	@override String get screenLockButton => 'Schermvergrendeling';
-	@override String get longPressToUnlock => 'Lang indrukken om te ontgrendelen';
 	@override String get timelineSlider => 'Videotijdlijn';
 	@override String get volumeSlider => 'Volumeniveau';
 	@override String endsAt({required Object time}) => 'Eindigt om ${time}';
@@ -1008,6 +1008,7 @@ class _Translations$videoControls$nl extends Translations$videoControls$en {
 	@override String get subtitleDownloaded => 'Ondertitel gedownload';
 	@override String get subtitleDownloadedNotApplied => 'De ondertiteling is gedownload, maar kon niet worden geselecteerd';
 	@override String get subtitleDownloadFailed => 'Ondertitel downloaden mislukt';
+	@override String get subtitleDownloadTimedOut => 'De ondertiteling verscheen niet op tijd. Het downloaden is mogelijk mislukt';
 	@override String get searchLanguages => 'Talen zoeken...';
 	@override String get skipIntro => 'Intro overslaan';
 	@override String get skipCredits => 'Aftiteling overslaan';
@@ -2541,11 +2542,11 @@ class _Translations$supporter$errors$nl extends Translations$supporter$errors$en
 
 	// Translations
 	@override String get storeUnavailable => 'Aankopen zijn niet beschikbaar. Controleer of je bent aangemeld bij de store en of aankopen op dit apparaat zijn toegestaan.';
-	@override String get productNotFound => 'De Supporter-aankoop is momenteel niet beschikbaar in jouw store.';
+	@override String get productNotFound => 'Het Thema- en iconenpakket is momenteel niet beschikbaar in jouw store.';
 	@override String get productQueryFailed => 'De prijs kon niet worden geladen. Controleer je verbinding en probeer het opnieuw.';
 	@override String get purchaseFailed => 'De aankoop is niet gelukt. Probeer het opnieuw.';
 	@override String get restoreFailed => 'De store kon niet worden bereikt om je aankoop te herstellen. Probeer het opnieuw.';
-	@override String get nothingToRestore => 'Er is geen Supporter-aankoop gevonden voor dit store-account.';
+	@override String get nothingToRestore => 'Er is geen aankoop van het Thema- en iconenpakket gevonden voor dit store-account.';
 }
 
 // Path: themeEditor.slots
@@ -3044,6 +3045,8 @@ class _Translations$explore$detail$nl extends Translations$explore$detail$en {
 	@override String get watchOn => 'Bekijk op';
 	@override String get watchTrailer => 'Trailer bekijken';
 	@override String openOn({required Object site}) => 'Openen op ${site}';
+	@override String get trailerUnavailable => 'Kan de trailer niet openen op dit apparaat';
+	@override String get linkUnavailable => 'Kan de link niet openen op dit apparaat';
 	@override String get crew => 'Crew';
 	@override String get ratings => 'Beoordelingen';
 	@override String get schedule => 'Uitzendschema';
@@ -3399,8 +3402,8 @@ extension on TranslationsNl {
 			'appIcon.title' => 'App-icoon',
 			'appIcon.defaultIcon' => 'Standaard',
 			'appIcon.current' => 'Huidig icoon',
-			'appIcon.locked' => 'Supporter-voordeel',
-			'appIcon.lockedHint' => 'Alternatieve iconen zijn een Supporter-voordeel.',
+			'appIcon.locked' => 'Onderdeel van het Thema- en iconenpakket',
+			'appIcon.lockedHint' => 'Alternatieve iconen zijn onderdeel van het Thema- en iconenpakket.',
 			'appIcon.changeFailed' => 'Het app-icoon kon niet worden gewijzigd',
 			'appIcon.launcherHint' => 'Het nieuwe icoon verschijnt op je beginscherm zodra je Plezy verlaat.',
 			'appIcon.tvLauncherHint' => 'De nieuwe banner verschijnt zodra je Plezy verlaat. Android TV kan de oude blijven tonen totdat de tv opnieuw is opgestart.',
@@ -3530,8 +3533,8 @@ extension on TranslationsNl {
 			'update.viewRelease' => 'Bekijk release',
 			'update.latestVersion' => 'Je hebt de nieuwste versie',
 			'update.checkFailed' => 'Kon niet controleren op updates',
-			'supporter.title' => 'Plezy Supporter',
-			'supporter.intro' => 'Een eenmalige aankoop die de ontwikkeling van Plezy steunt en cosmetische extra\'s ontgrendelt:',
+			'supporter.title' => 'Thema- en iconenpakket',
+			'supporter.intro' => 'Een optionele eenmalige aankoop met cosmetische extra\'s:',
 			'supporter.presetThemes' => 'Kant-en-klare thema\'s',
 			'supporter.presetThemesDescription' => 'Sintel, Gletsjer, Woud, Pruim en Papier',
 			'supporter.customTheme' => 'Aangepast thema',
@@ -3542,17 +3545,17 @@ extension on TranslationsNl {
 			'supporter.loadingPrice' => 'Prijs laden...',
 			'supporter.restore' => 'Aankopen herstellen',
 			'supporter.pending' => 'Je aankoop wacht op betaling of goedkeuring. De extra\'s worden ontgrendeld zodra de store de aankoop afrondt.',
-			'supporter.thankYouTitle' => 'Bedankt dat je Plezy steunt',
-			'supporter.thankYouBody' => 'Je Supporter-extra\'s zijn ontgrendeld.',
+			'supporter.thankYouTitle' => 'Bedankt voor je aankoop',
+			'supporter.thankYouBody' => 'Het Thema- en iconenpakket is ontgrendeld.',
 			'supporter.tileSubtitle' => 'Ontgrendel thema\'s en app-iconen met een eenmalige aankoop',
 			'supporter.tileSubtitleThemesOnly' => 'Ontgrendel thema\'s met een eenmalige aankoop',
-			'supporter.tileUnlocked' => 'Bedankt voor je steun',
+			'supporter.tileUnlocked' => 'Ontgrendeld — bedankt voor je aankoop',
 			'supporter.errors.storeUnavailable' => 'Aankopen zijn niet beschikbaar. Controleer of je bent aangemeld bij de store en of aankopen op dit apparaat zijn toegestaan.',
-			'supporter.errors.productNotFound' => 'De Supporter-aankoop is momenteel niet beschikbaar in jouw store.',
+			'supporter.errors.productNotFound' => 'Het Thema- en iconenpakket is momenteel niet beschikbaar in jouw store.',
 			'supporter.errors.productQueryFailed' => 'De prijs kon niet worden geladen. Controleer je verbinding en probeer het opnieuw.',
 			'supporter.errors.purchaseFailed' => 'De aankoop is niet gelukt. Probeer het opnieuw.',
 			'supporter.errors.restoreFailed' => 'De store kon niet worden bereikt om je aankoop te herstellen. Probeer het opnieuw.',
-			'supporter.errors.nothingToRestore' => 'Er is geen Supporter-aankoop gevonden voor dit store-account.',
+			'supporter.errors.nothingToRestore' => 'Er is geen aankoop van het Thema- en iconenpakket gevonden voor dit store-account.',
 			'settings.title' => 'Instellingen',
 			'settings.supportDeveloper' => 'Steun Plezy',
 			'settings.supportDeveloperDescription' => 'Doneer via Liberapay om de ontwikkeling te steunen',
@@ -3882,6 +3885,7 @@ extension on TranslationsNl {
 			'settings.scopePlaybackSpeed' => 'Afspeelsnelheid',
 			'settings.scopeShaderPreset' => 'Shadervoorinstelling',
 			'settings.scopeAspectRatio' => 'Beeldverhouding',
+			'settings.scopeZoom' => 'Zoom',
 			'settings.scopeSyncOffsets' => 'Audio- en ondertitelsynchronisatie',
 			'settings.playerScopeOff' => 'Niet opslaan',
 			'settings.playerScopeGlobal' => 'Overal',
@@ -3894,8 +3898,8 @@ extension on TranslationsNl {
 			'themeEditor.customEmpty' => 'Nog niet gemaakt',
 			'themeEditor.editCustom' => 'Aangepast thema bewerken',
 			'themeEditor.editCustomDescription' => 'Kies elke kleur zelf',
-			'themeEditor.locked' => 'Ontgrendelen met Supporter',
-			'themeEditor.savedLocked' => 'Opgeslagen — wordt ontgrendeld met Supporter',
+			'themeEditor.locked' => 'Ontgrendelen met het Thema- en iconenpakket',
+			'themeEditor.savedLocked' => 'Opgeslagen — wordt ontgrendeld met het Thema- en iconenpakket',
 			'themeEditor.title' => 'Aangepast thema',
 			'themeEditor.startFrom' => 'Beginnen vanaf',
 			'themeEditor.startFromDescription' => 'Kopieer alle kleuren van een ander thema',
@@ -3906,9 +3910,9 @@ extension on TranslationsNl {
 			'themeEditor.slots.outline' => 'Rand',
 			'themeEditor.slots.text' => 'Tekst',
 			'themeEditor.slots.textMuted' => 'Secundaire tekst',
-			'themeEditor.slots.accent' => 'Accent',
 			_ => null,
 		} ?? switch (path) {
+			'themeEditor.slots.accent' => 'Accent',
 			'themeEditor.opacity' => 'Dekking',
 			'themeEditor.hexHint' => '#RRGGBB of #AARRGGBB',
 			'themeEditor.fromOtherThemes' => 'Uit andere thema\'s',
@@ -4204,7 +4208,6 @@ extension on TranslationsNl {
 			'videoControls.rotationLockButton' => 'Rotatievergrendeling',
 			'videoControls.lockScreen' => 'Scherm vergrendelen',
 			'videoControls.screenLockButton' => 'Schermvergrendeling',
-			'videoControls.longPressToUnlock' => 'Lang indrukken om te ontgrendelen',
 			'videoControls.timelineSlider' => 'Videotijdlijn',
 			'videoControls.volumeSlider' => 'Volumeniveau',
 			'videoControls.endsAt' => ({required Object time}) => 'Eindigt om ${time}',
@@ -4233,6 +4236,7 @@ extension on TranslationsNl {
 			'videoControls.subtitleDownloaded' => 'Ondertitel gedownload',
 			'videoControls.subtitleDownloadedNotApplied' => 'De ondertiteling is gedownload, maar kon niet worden geselecteerd',
 			'videoControls.subtitleDownloadFailed' => 'Ondertitel downloaden mislukt',
+			'videoControls.subtitleDownloadTimedOut' => 'De ondertiteling verscheen niet op tijd. Het downloaden is mogelijk mislukt',
 			'videoControls.searchLanguages' => 'Talen zoeken...',
 			'videoControls.skipIntro' => 'Intro overslaan',
 			'videoControls.skipCredits' => 'Aftiteling overslaan',
@@ -4420,9 +4424,9 @@ extension on TranslationsNl {
 			'profiles.pinsDontMatch' => 'De pincodes komen niet overeen',
 			'profiles.tokenIdentityMismatch' => 'Het token van het Plex-profiel bleek bij een onverwachte server te horen',
 			'connections.sectionTitle' => 'Verbindingen',
-			'connections.addConnection' => 'Verbinding toevoegen',
 			_ => null,
 		} ?? switch (path) {
+			'connections.addConnection' => 'Verbinding toevoegen',
 			'connections.addConnectionSubtitleNoProfile' => 'Meld je aan met Plex of verbind een Jellyfin- of Emby-server',
 			'connections.addConnectionSubtitleScoped' => ({required Object displayName}) => 'Toevoegen aan ${displayName}: Plex, Jellyfin, Emby of een andere profielverbinding',
 			'connections.sessionExpiredOne' => ({required Object name}) => 'Sessie verlopen voor ${name}',
@@ -4837,6 +4841,8 @@ extension on TranslationsNl {
 			'explore.detail.watchOn' => 'Bekijk op',
 			'explore.detail.watchTrailer' => 'Trailer bekijken',
 			'explore.detail.openOn' => ({required Object site}) => 'Openen op ${site}',
+			'explore.detail.trailerUnavailable' => 'Kan de trailer niet openen op dit apparaat',
+			'explore.detail.linkUnavailable' => 'Kan de link niet openen op dit apparaat',
 			'explore.detail.crew' => 'Crew',
 			'explore.detail.ratings' => 'Beoordelingen',
 			'explore.detail.schedule' => 'Uitzendschema',
@@ -4932,11 +4938,11 @@ extension on TranslationsNl {
 			'liveTv.recordSettings.anyTime' => 'Op elk tijdstip opnemen',
 			'liveTv.recordSettings.skipInLibrary' => 'Afleveringen overslaan die al in de bibliotheek staan',
 			'liveTv.recordSettings.keepUpTo' => 'Te bewaren afleveringen',
+			_ => null,
+		} ?? switch (path) {
 			'liveTv.recordSettings.keepUpToHint' => '0 bewaart alle afleveringen',
 			'liveTv.startingInMinutes' => ({required Object minutes}) => 'Begint over ${minutes} min',
 			'liveTv.dayAtTime' => ({required Object day, required Object time}) => '${day} om ${time}',
-			_ => null,
-		} ?? switch (path) {
 			'liveTv.invalidPlaybackData' => ({required Object product}) => '${product} heeft ongeldige afspeelgegevens voor Live-tv geretourneerd',
 			'liveTv.failedToStartChannel' => 'Kon de livezender niet starten',
 			'liveTv.failedToBuildStreamUrl' => 'Kon de stream-URL niet samenstellen',
@@ -5446,11 +5452,11 @@ extension on TranslationsNl {
 			'performanceOverlay.decoderMediatekHw' => 'MediaTek HW',
 			'performanceOverlay.decoderExynosHw' => 'Exynos HW',
 			'performanceOverlay.decoderSoftware' => 'Software',
+			_ => null,
+		} ?? switch (path) {
 			'performanceOverlay.decoderHardware' => 'Hardware',
 			'performanceOverlay.tunnelingActive' => 'Actief',
 			'performanceOverlay.dvRpuFailed' => ({required Object converted, required Object failures}) => '${converted} (${failures} mislukt)',
-			_ => null,
-		} ?? switch (path) {
 			'externalPlayer.title' => 'Externe speler',
 			'externalPlayer.useExternalPlayer' => 'Externe speler gebruiken',
 			'externalPlayer.useExternalPlayerDescription' => 'Open video\'s in een andere app',

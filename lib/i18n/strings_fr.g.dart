@@ -115,8 +115,8 @@ class _Translations$appIcon$fr extends Translations$appIcon$en {
 	@override String get title => 'Icône de l’application';
 	@override String get defaultIcon => 'Par défaut';
 	@override String get current => 'Icône actuelle';
-	@override String get locked => 'Avantage Supporter';
-	@override String get lockedHint => 'Les icônes alternatives sont un avantage Supporter.';
+	@override String get locked => 'Inclus dans le Pack de thèmes et d’icônes';
+	@override String get lockedHint => 'Les icônes alternatives sont incluses dans le Pack de thèmes et d’icônes.';
 	@override String get changeFailed => 'Impossible de changer l’icône de l’application';
 	@override String get launcherHint => 'La nouvelle icône apparaîtra sur votre écran d’accueil une fois que vous aurez quitté Plezy.';
 	@override String get tvLauncherHint => 'La nouvelle bannière apparaîtra une fois que vous aurez quitté Plezy. Android TV peut continuer à afficher l’ancienne jusqu’au redémarrage du téléviseur.';
@@ -246,8 +246,8 @@ class _Translations$supporter$fr extends Translations$supporter$en {
 	final TranslationsFr _root; // ignore: unused_field
 
 	// Translations
-	@override String get title => 'Plezy Supporter';
-	@override String get intro => 'Un achat unique qui soutient le développement de Plezy et débloque des bonus esthétiques :';
+	@override String get title => 'Pack de thèmes et d’icônes';
+	@override String get intro => 'Un achat unique et facultatif qui ajoute des bonus esthétiques :';
 	@override String get presetThemes => 'Thèmes prédéfinis';
 	@override String get presetThemesDescription => 'Braise, Glacier, Forêt, Prune et Papier';
 	@override String get customTheme => 'Thème personnalisé';
@@ -258,11 +258,11 @@ class _Translations$supporter$fr extends Translations$supporter$en {
 	@override String get loadingPrice => 'Chargement du prix...';
 	@override String get restore => 'Restaurer les achats';
 	@override String get pending => 'Votre achat est en attente de paiement ou d’approbation. Les bonus seront débloqués dès que la boutique l’aura finalisé.';
-	@override String get thankYouTitle => 'Merci de soutenir Plezy';
-	@override String get thankYouBody => 'Vos bonus Supporter sont débloqués.';
+	@override String get thankYouTitle => 'Merci pour votre achat';
+	@override String get thankYouBody => 'Le Pack de thèmes et d’icônes est débloqué.';
 	@override String get tileSubtitle => 'Débloquez des thèmes et des icônes d’application grâce à un achat unique';
 	@override String get tileSubtitleThemesOnly => 'Débloquez des thèmes grâce à un achat unique';
-	@override String get tileUnlocked => 'Merci pour votre soutien';
+	@override String get tileUnlocked => 'Débloqué — merci pour votre achat';
 	@override late final _Translations$supporter$errors$fr errors = _Translations$supporter$errors$fr._(_root);
 }
 
@@ -602,6 +602,7 @@ class _Translations$settings$fr extends Translations$settings$en {
 	@override String get scopePlaybackSpeed => 'Vitesse de lecture';
 	@override String get scopeShaderPreset => 'Préréglage du shader';
 	@override String get scopeAspectRatio => 'Format d’image';
+	@override String get scopeZoom => 'Zoom';
 	@override String get scopeSyncOffsets => 'Synchronisation audio et sous-titres';
 	@override String get playerScopeOff => 'Ne pas enregistrer';
 	@override String get playerScopeGlobal => 'Partout';
@@ -623,8 +624,8 @@ class _Translations$themeEditor$fr extends Translations$themeEditor$en {
 	@override String get customEmpty => 'Pas encore créé';
 	@override String get editCustom => 'Modifier le thème personnalisé';
 	@override String get editCustomDescription => 'Choisissez vous-même chaque couleur';
-	@override String get locked => 'Débloquer avec Supporter';
-	@override String get savedLocked => 'Enregistré — se débloque avec Supporter';
+	@override String get locked => 'Débloquer avec le Pack de thèmes et d’icônes';
+	@override String get savedLocked => 'Enregistré — se débloque avec le Pack de thèmes et d’icônes';
 	@override String get title => 'Thème personnalisé';
 	@override String get startFrom => 'Partir d’un thème';
 	@override String get startFromDescription => 'Copier toutes les couleurs d’un autre thème';
@@ -986,7 +987,6 @@ class _Translations$videoControls$fr extends Translations$videoControls$en {
 	@override String get rotationLockButton => 'Verrouillage de rotation';
 	@override String get lockScreen => 'Verrouiller l\'écran';
 	@override String get screenLockButton => 'Verrouillage de l\'écran';
-	@override String get longPressToUnlock => 'Appui long pour déverrouiller';
 	@override String get timelineSlider => 'Barre de progression vidéo';
 	@override String get volumeSlider => 'Niveau du volume';
 	@override String endsAt({required Object time}) => 'Se termine à ${time}';
@@ -1008,6 +1008,7 @@ class _Translations$videoControls$fr extends Translations$videoControls$en {
 	@override String get subtitleDownloaded => 'Sous-titre téléchargé';
 	@override String get subtitleDownloadedNotApplied => 'Le sous-titre a été téléchargé, mais n’a pas pu être sélectionné';
 	@override String get subtitleDownloadFailed => 'Échec du téléchargement du sous-titre';
+	@override String get subtitleDownloadTimedOut => 'Le sous-titre n’est pas apparu à temps. Le téléchargement a peut-être échoué';
 	@override String get searchLanguages => 'Rechercher des langues...';
 	@override String get skipIntro => 'Passer l’intro';
 	@override String get skipCredits => 'Passer le générique';
@@ -2541,11 +2542,11 @@ class _Translations$supporter$errors$fr extends Translations$supporter$errors$en
 
 	// Translations
 	@override String get storeUnavailable => 'Les achats ne sont pas disponibles. Vérifiez que vous êtes connecté à la boutique et que les achats sont autorisés sur cet appareil.';
-	@override String get productNotFound => 'L’achat Supporter n’est pas disponible dans votre boutique pour le moment.';
+	@override String get productNotFound => 'Le Pack de thèmes et d’icônes n’est pas disponible dans votre boutique pour le moment.';
 	@override String get productQueryFailed => 'Impossible de charger le prix. Vérifiez votre connexion et réessayez.';
 	@override String get purchaseFailed => 'L’achat n’a pas abouti. Réessayez.';
 	@override String get restoreFailed => 'Impossible de joindre la boutique pour restaurer votre achat. Réessayez.';
-	@override String get nothingToRestore => 'Aucun achat Supporter n’a été trouvé pour ce compte de la boutique.';
+	@override String get nothingToRestore => 'Aucun achat du Pack de thèmes et d’icônes n’a été trouvé pour ce compte de la boutique.';
 }
 
 // Path: themeEditor.slots
@@ -3044,6 +3045,8 @@ class _Translations$explore$detail$fr extends Translations$explore$detail$en {
 	@override String get watchOn => 'Regarder sur';
 	@override String get watchTrailer => 'Regarder la bande-annonce';
 	@override String openOn({required Object site}) => 'Ouvrir sur ${site}';
+	@override String get trailerUnavailable => 'Impossible d’ouvrir la bande-annonce sur cet appareil';
+	@override String get linkUnavailable => 'Impossible d’ouvrir ce lien sur cet appareil';
 	@override String get crew => 'Équipe';
 	@override String get ratings => 'Notes';
 	@override String get schedule => 'Programme';
@@ -3399,8 +3402,8 @@ extension on TranslationsFr {
 			'appIcon.title' => 'Icône de l’application',
 			'appIcon.defaultIcon' => 'Par défaut',
 			'appIcon.current' => 'Icône actuelle',
-			'appIcon.locked' => 'Avantage Supporter',
-			'appIcon.lockedHint' => 'Les icônes alternatives sont un avantage Supporter.',
+			'appIcon.locked' => 'Inclus dans le Pack de thèmes et d’icônes',
+			'appIcon.lockedHint' => 'Les icônes alternatives sont incluses dans le Pack de thèmes et d’icônes.',
 			'appIcon.changeFailed' => 'Impossible de changer l’icône de l’application',
 			'appIcon.launcherHint' => 'La nouvelle icône apparaîtra sur votre écran d’accueil une fois que vous aurez quitté Plezy.',
 			'appIcon.tvLauncherHint' => 'La nouvelle bannière apparaîtra une fois que vous aurez quitté Plezy. Android TV peut continuer à afficher l’ancienne jusqu’au redémarrage du téléviseur.',
@@ -3530,8 +3533,8 @@ extension on TranslationsFr {
 			'update.viewRelease' => 'Voir les notes de version',
 			'update.latestVersion' => 'Vous utilisez la dernière version',
 			'update.checkFailed' => 'Échec de la vérification des mises à jour',
-			'supporter.title' => 'Plezy Supporter',
-			'supporter.intro' => 'Un achat unique qui soutient le développement de Plezy et débloque des bonus esthétiques :',
+			'supporter.title' => 'Pack de thèmes et d’icônes',
+			'supporter.intro' => 'Un achat unique et facultatif qui ajoute des bonus esthétiques :',
 			'supporter.presetThemes' => 'Thèmes prédéfinis',
 			'supporter.presetThemesDescription' => 'Braise, Glacier, Forêt, Prune et Papier',
 			'supporter.customTheme' => 'Thème personnalisé',
@@ -3542,17 +3545,17 @@ extension on TranslationsFr {
 			'supporter.loadingPrice' => 'Chargement du prix...',
 			'supporter.restore' => 'Restaurer les achats',
 			'supporter.pending' => 'Votre achat est en attente de paiement ou d’approbation. Les bonus seront débloqués dès que la boutique l’aura finalisé.',
-			'supporter.thankYouTitle' => 'Merci de soutenir Plezy',
-			'supporter.thankYouBody' => 'Vos bonus Supporter sont débloqués.',
+			'supporter.thankYouTitle' => 'Merci pour votre achat',
+			'supporter.thankYouBody' => 'Le Pack de thèmes et d’icônes est débloqué.',
 			'supporter.tileSubtitle' => 'Débloquez des thèmes et des icônes d’application grâce à un achat unique',
 			'supporter.tileSubtitleThemesOnly' => 'Débloquez des thèmes grâce à un achat unique',
-			'supporter.tileUnlocked' => 'Merci pour votre soutien',
+			'supporter.tileUnlocked' => 'Débloqué — merci pour votre achat',
 			'supporter.errors.storeUnavailable' => 'Les achats ne sont pas disponibles. Vérifiez que vous êtes connecté à la boutique et que les achats sont autorisés sur cet appareil.',
-			'supporter.errors.productNotFound' => 'L’achat Supporter n’est pas disponible dans votre boutique pour le moment.',
+			'supporter.errors.productNotFound' => 'Le Pack de thèmes et d’icônes n’est pas disponible dans votre boutique pour le moment.',
 			'supporter.errors.productQueryFailed' => 'Impossible de charger le prix. Vérifiez votre connexion et réessayez.',
 			'supporter.errors.purchaseFailed' => 'L’achat n’a pas abouti. Réessayez.',
 			'supporter.errors.restoreFailed' => 'Impossible de joindre la boutique pour restaurer votre achat. Réessayez.',
-			'supporter.errors.nothingToRestore' => 'Aucun achat Supporter n’a été trouvé pour ce compte de la boutique.',
+			'supporter.errors.nothingToRestore' => 'Aucun achat du Pack de thèmes et d’icônes n’a été trouvé pour ce compte de la boutique.',
 			'settings.title' => 'Paramètres',
 			'settings.supportDeveloper' => 'Soutenir Plezy',
 			'settings.supportDeveloperDescription' => 'Faites un don via Liberapay pour financer le développement',
@@ -3882,6 +3885,7 @@ extension on TranslationsFr {
 			'settings.scopePlaybackSpeed' => 'Vitesse de lecture',
 			'settings.scopeShaderPreset' => 'Préréglage du shader',
 			'settings.scopeAspectRatio' => 'Format d’image',
+			'settings.scopeZoom' => 'Zoom',
 			'settings.scopeSyncOffsets' => 'Synchronisation audio et sous-titres',
 			'settings.playerScopeOff' => 'Ne pas enregistrer',
 			'settings.playerScopeGlobal' => 'Partout',
@@ -3894,8 +3898,8 @@ extension on TranslationsFr {
 			'themeEditor.customEmpty' => 'Pas encore créé',
 			'themeEditor.editCustom' => 'Modifier le thème personnalisé',
 			'themeEditor.editCustomDescription' => 'Choisissez vous-même chaque couleur',
-			'themeEditor.locked' => 'Débloquer avec Supporter',
-			'themeEditor.savedLocked' => 'Enregistré — se débloque avec Supporter',
+			'themeEditor.locked' => 'Débloquer avec le Pack de thèmes et d’icônes',
+			'themeEditor.savedLocked' => 'Enregistré — se débloque avec le Pack de thèmes et d’icônes',
 			'themeEditor.title' => 'Thème personnalisé',
 			'themeEditor.startFrom' => 'Partir d’un thème',
 			'themeEditor.startFromDescription' => 'Copier toutes les couleurs d’un autre thème',
@@ -3906,9 +3910,9 @@ extension on TranslationsFr {
 			'themeEditor.slots.outline' => 'Contour',
 			'themeEditor.slots.text' => 'Texte',
 			'themeEditor.slots.textMuted' => 'Texte secondaire',
-			'themeEditor.slots.accent' => 'Accent',
 			_ => null,
 		} ?? switch (path) {
+			'themeEditor.slots.accent' => 'Accent',
 			'themeEditor.opacity' => 'Opacité',
 			'themeEditor.hexHint' => '#RRGGBB ou #AARRGGBB',
 			'themeEditor.fromOtherThemes' => 'Dans les autres thèmes',
@@ -4204,7 +4208,6 @@ extension on TranslationsFr {
 			'videoControls.rotationLockButton' => 'Verrouillage de rotation',
 			'videoControls.lockScreen' => 'Verrouiller l\'écran',
 			'videoControls.screenLockButton' => 'Verrouillage de l\'écran',
-			'videoControls.longPressToUnlock' => 'Appui long pour déverrouiller',
 			'videoControls.timelineSlider' => 'Barre de progression vidéo',
 			'videoControls.volumeSlider' => 'Niveau du volume',
 			'videoControls.endsAt' => ({required Object time}) => 'Se termine à ${time}',
@@ -4233,6 +4236,7 @@ extension on TranslationsFr {
 			'videoControls.subtitleDownloaded' => 'Sous-titre téléchargé',
 			'videoControls.subtitleDownloadedNotApplied' => 'Le sous-titre a été téléchargé, mais n’a pas pu être sélectionné',
 			'videoControls.subtitleDownloadFailed' => 'Échec du téléchargement du sous-titre',
+			'videoControls.subtitleDownloadTimedOut' => 'Le sous-titre n’est pas apparu à temps. Le téléchargement a peut-être échoué',
 			'videoControls.searchLanguages' => 'Rechercher des langues...',
 			'videoControls.skipIntro' => 'Passer l’intro',
 			'videoControls.skipCredits' => 'Passer le générique',
@@ -4420,9 +4424,9 @@ extension on TranslationsFr {
 			'profiles.pinsDontMatch' => 'Les PIN ne correspondent pas',
 			'profiles.tokenIdentityMismatch' => 'Le jeton du profil Plex correspond à un serveur inattendu',
 			'connections.sectionTitle' => 'Connexions',
-			'connections.addConnection' => 'Ajouter une connexion',
 			_ => null,
 		} ?? switch (path) {
+			'connections.addConnection' => 'Ajouter une connexion',
 			'connections.addConnectionSubtitleNoProfile' => 'Connectez-vous avec Plex ou connectez un serveur Jellyfin ou Emby',
 			'connections.addConnectionSubtitleScoped' => ({required Object displayName}) => 'Ajouter à ${displayName} : Plex, Jellyfin, Emby ou une autre connexion de profil',
 			'connections.sessionExpiredOne' => ({required Object name}) => 'Session expirée pour ${name}',
@@ -4837,6 +4841,8 @@ extension on TranslationsFr {
 			'explore.detail.watchOn' => 'Regarder sur',
 			'explore.detail.watchTrailer' => 'Regarder la bande-annonce',
 			'explore.detail.openOn' => ({required Object site}) => 'Ouvrir sur ${site}',
+			'explore.detail.trailerUnavailable' => 'Impossible d’ouvrir la bande-annonce sur cet appareil',
+			'explore.detail.linkUnavailable' => 'Impossible d’ouvrir ce lien sur cet appareil',
 			'explore.detail.crew' => 'Équipe',
 			'explore.detail.ratings' => 'Notes',
 			'explore.detail.schedule' => 'Programme',
@@ -4932,11 +4938,11 @@ extension on TranslationsFr {
 			'liveTv.recordSettings.anyTime' => 'Enregistrer à n’importe quelle heure',
 			'liveTv.recordSettings.skipInLibrary' => 'Ignorer les épisodes déjà présents dans la bibliothèque',
 			'liveTv.recordSettings.keepUpTo' => 'Épisodes à conserver',
+			_ => null,
+		} ?? switch (path) {
 			'liveTv.recordSettings.keepUpToHint' => '0 conserve tous les épisodes',
 			'liveTv.startingInMinutes' => ({required Object minutes}) => 'Commence dans ${minutes} min',
 			'liveTv.dayAtTime' => ({required Object day, required Object time}) => '${day} à ${time}',
-			_ => null,
-		} ?? switch (path) {
 			'liveTv.invalidPlaybackData' => ({required Object product}) => '${product} a renvoyé des données de lecture de TV en direct non valides',
 			'liveTv.failedToStartChannel' => 'Impossible de lancer la chaîne en direct',
 			'liveTv.failedToBuildStreamUrl' => 'Impossible de générer l’URL du flux',
@@ -5446,11 +5452,11 @@ extension on TranslationsFr {
 			'performanceOverlay.decoderMediatekHw' => 'Matériel MediaTek',
 			'performanceOverlay.decoderExynosHw' => 'Matériel Exynos',
 			'performanceOverlay.decoderSoftware' => 'Logiciel',
+			_ => null,
+		} ?? switch (path) {
 			'performanceOverlay.decoderHardware' => 'Matériel',
 			'performanceOverlay.tunnelingActive' => 'Actif',
 			'performanceOverlay.dvRpuFailed' => ({required Object converted, required Object failures}) => '${converted} (${failures} échecs)',
-			_ => null,
-		} ?? switch (path) {
 			'externalPlayer.title' => 'Lecteur externe',
 			'externalPlayer.useExternalPlayer' => 'Utiliser un lecteur externe',
 			'externalPlayer.useExternalPlayerDescription' => 'Ouvrir les vidéos dans une autre application',

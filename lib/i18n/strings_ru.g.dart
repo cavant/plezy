@@ -115,8 +115,8 @@ class _Translations$appIcon$ru extends Translations$appIcon$en {
 	@override String get title => 'Значок приложения';
 	@override String get defaultIcon => 'Стандартный';
 	@override String get current => 'Текущий значок';
-	@override String get locked => 'Бонус Supporter';
-	@override String get lockedHint => 'Альтернативные значки — бонус Supporter.';
+	@override String get locked => 'Входит в набор тем и значков';
+	@override String get lockedHint => 'Альтернативные значки входят в набор тем и значков.';
 	@override String get changeFailed => 'Не удалось сменить значок приложения';
 	@override String get launcherHint => 'Новый значок появится на главном экране, когда вы выйдете из Plezy.';
 	@override String get tvLauncherHint => 'Новый баннер появится, когда вы выйдете из Plezy. Android TV может показывать старый до перезапуска телевизора.';
@@ -246,8 +246,8 @@ class _Translations$supporter$ru extends Translations$supporter$en {
 	final TranslationsRu _root; // ignore: unused_field
 
 	// Translations
-	@override String get title => 'Plezy Supporter';
-	@override String get intro => 'Разовая покупка, которая поддерживает разработку Plezy и открывает косметические дополнения:';
+	@override String get title => 'Набор тем и значков';
+	@override String get intro => 'Необязательная разовая покупка, которая добавляет косметические дополнения:';
 	@override String get presetThemes => 'Готовые темы';
 	@override String get presetThemesDescription => 'Уголёк, Ледник, Лес, Слива и Бумага';
 	@override String get customTheme => 'Своя тема';
@@ -258,11 +258,11 @@ class _Translations$supporter$ru extends Translations$supporter$en {
 	@override String get loadingPrice => 'Загрузка цены...';
 	@override String get restore => 'Восстановить покупки';
 	@override String get pending => 'Покупка ожидает оплаты или подтверждения. Дополнения откроются, как только магазин её завершит.';
-	@override String get thankYouTitle => 'Спасибо за поддержку Plezy';
-	@override String get thankYouBody => 'Дополнения Supporter разблокированы.';
+	@override String get thankYouTitle => 'Спасибо за покупку';
+	@override String get thankYouBody => 'Набор тем и значков разблокирован.';
 	@override String get tileSubtitle => 'Откройте темы и значки приложения разовой покупкой';
 	@override String get tileSubtitleThemesOnly => 'Откройте темы разовой покупкой';
-	@override String get tileUnlocked => 'Спасибо за вашу поддержку';
+	@override String get tileUnlocked => 'Разблокировано — спасибо за покупку';
 	@override late final _Translations$supporter$errors$ru errors = _Translations$supporter$errors$ru._(_root);
 }
 
@@ -602,6 +602,7 @@ class _Translations$settings$ru extends Translations$settings$en {
 	@override String get scopePlaybackSpeed => 'Скорость воспроизведения';
 	@override String get scopeShaderPreset => 'Предустановка шейдера';
 	@override String get scopeAspectRatio => 'Соотношение сторон';
+	@override String get scopeZoom => 'Масштаб';
 	@override String get scopeSyncOffsets => 'Синхронизация аудио и субтитров';
 	@override String get playerScopeOff => 'Не сохранять';
 	@override String get playerScopeGlobal => 'Везде';
@@ -623,8 +624,8 @@ class _Translations$themeEditor$ru extends Translations$themeEditor$en {
 	@override String get customEmpty => 'Ещё не создана';
 	@override String get editCustom => 'Изменить свою тему';
 	@override String get editCustomDescription => 'Выберите каждый цвет сами';
-	@override String get locked => 'Доступно с Supporter';
-	@override String get savedLocked => 'Сохранено — станет доступно с Supporter';
+	@override String get locked => 'Доступно с набором тем и значков';
+	@override String get savedLocked => 'Сохранено — станет доступно с набором тем и значков';
 	@override String get title => 'Своя тема';
 	@override String get startFrom => 'Взять за основу';
 	@override String get startFromDescription => 'Скопировать все цвета из другой темы';
@@ -992,7 +993,6 @@ class _Translations$videoControls$ru extends Translations$videoControls$en {
 	@override String get rotationLockButton => 'Блокировка поворота';
 	@override String get lockScreen => 'Заблокировать экран';
 	@override String get screenLockButton => 'Блокировка экрана';
-	@override String get longPressToUnlock => 'Удерживайте для разблокировки';
 	@override String get timelineSlider => 'Временная шкала';
 	@override String get volumeSlider => 'Уровень громкости';
 	@override String endsAt({required Object time}) => 'Закончится в ${time}';
@@ -1014,6 +1014,7 @@ class _Translations$videoControls$ru extends Translations$videoControls$en {
 	@override String get subtitleDownloaded => 'Субтитры загружены';
 	@override String get subtitleDownloadedNotApplied => 'Субтитры загружены, но их не удалось выбрать';
 	@override String get subtitleDownloadFailed => 'Не удалось загрузить субтитры';
+	@override String get subtitleDownloadTimedOut => 'Субтитры не появились вовремя. Возможно, загрузка не удалась';
 	@override String get searchLanguages => 'Поиск языков...';
 	@override String get skipIntro => 'Пропустить заставку';
 	@override String get skipCredits => 'Пропустить титры';
@@ -2561,11 +2562,11 @@ class _Translations$supporter$errors$ru extends Translations$supporter$errors$en
 
 	// Translations
 	@override String get storeUnavailable => 'Покупки недоступны. Убедитесь, что вы вошли в магазин и покупки разрешены на этом устройстве.';
-	@override String get productNotFound => 'Покупка Supporter сейчас недоступна в вашем магазине.';
+	@override String get productNotFound => 'Набор тем и значков сейчас недоступен в вашем магазине.';
 	@override String get productQueryFailed => 'Не удалось загрузить цену. Проверьте подключение и попробуйте снова.';
 	@override String get purchaseFailed => 'Покупка не прошла. Попробуйте снова.';
 	@override String get restoreFailed => 'Не удалось связаться с магазином для восстановления покупки. Попробуйте снова.';
-	@override String get nothingToRestore => 'Для этой учётной записи магазина покупка Supporter не найдена.';
+	@override String get nothingToRestore => 'Для этой учётной записи магазина покупка набора тем и значков не найдена.';
 }
 
 // Path: themeEditor.slots
@@ -3066,6 +3067,8 @@ class _Translations$explore$detail$ru extends Translations$explore$detail$en {
 	@override String get watchOn => 'Смотреть на';
 	@override String get watchTrailer => 'Смотреть трейлер';
 	@override String openOn({required Object site}) => 'Открыть на ${site}';
+	@override String get trailerUnavailable => 'Не удалось открыть трейлер на этом устройстве';
+	@override String get linkUnavailable => 'Не удалось открыть ссылку на этом устройстве';
 	@override String get crew => 'Съёмочная группа';
 	@override String get ratings => 'Рейтинги';
 	@override String get schedule => 'Расписание';
@@ -3423,8 +3426,8 @@ extension on TranslationsRu {
 			'appIcon.title' => 'Значок приложения',
 			'appIcon.defaultIcon' => 'Стандартный',
 			'appIcon.current' => 'Текущий значок',
-			'appIcon.locked' => 'Бонус Supporter',
-			'appIcon.lockedHint' => 'Альтернативные значки — бонус Supporter.',
+			'appIcon.locked' => 'Входит в набор тем и значков',
+			'appIcon.lockedHint' => 'Альтернативные значки входят в набор тем и значков.',
 			'appIcon.changeFailed' => 'Не удалось сменить значок приложения',
 			'appIcon.launcherHint' => 'Новый значок появится на главном экране, когда вы выйдете из Plezy.',
 			'appIcon.tvLauncherHint' => 'Новый баннер появится, когда вы выйдете из Plezy. Android TV может показывать старый до перезапуска телевизора.',
@@ -3554,8 +3557,8 @@ extension on TranslationsRu {
 			'update.viewRelease' => 'Посмотреть релиз',
 			'update.latestVersion' => 'У вас последняя версия',
 			'update.checkFailed' => 'Не удалось проверить обновления',
-			'supporter.title' => 'Plezy Supporter',
-			'supporter.intro' => 'Разовая покупка, которая поддерживает разработку Plezy и открывает косметические дополнения:',
+			'supporter.title' => 'Набор тем и значков',
+			'supporter.intro' => 'Необязательная разовая покупка, которая добавляет косметические дополнения:',
 			'supporter.presetThemes' => 'Готовые темы',
 			'supporter.presetThemesDescription' => 'Уголёк, Ледник, Лес, Слива и Бумага',
 			'supporter.customTheme' => 'Своя тема',
@@ -3566,17 +3569,17 @@ extension on TranslationsRu {
 			'supporter.loadingPrice' => 'Загрузка цены...',
 			'supporter.restore' => 'Восстановить покупки',
 			'supporter.pending' => 'Покупка ожидает оплаты или подтверждения. Дополнения откроются, как только магазин её завершит.',
-			'supporter.thankYouTitle' => 'Спасибо за поддержку Plezy',
-			'supporter.thankYouBody' => 'Дополнения Supporter разблокированы.',
+			'supporter.thankYouTitle' => 'Спасибо за покупку',
+			'supporter.thankYouBody' => 'Набор тем и значков разблокирован.',
 			'supporter.tileSubtitle' => 'Откройте темы и значки приложения разовой покупкой',
 			'supporter.tileSubtitleThemesOnly' => 'Откройте темы разовой покупкой',
-			'supporter.tileUnlocked' => 'Спасибо за вашу поддержку',
+			'supporter.tileUnlocked' => 'Разблокировано — спасибо за покупку',
 			'supporter.errors.storeUnavailable' => 'Покупки недоступны. Убедитесь, что вы вошли в магазин и покупки разрешены на этом устройстве.',
-			'supporter.errors.productNotFound' => 'Покупка Supporter сейчас недоступна в вашем магазине.',
+			'supporter.errors.productNotFound' => 'Набор тем и значков сейчас недоступен в вашем магазине.',
 			'supporter.errors.productQueryFailed' => 'Не удалось загрузить цену. Проверьте подключение и попробуйте снова.',
 			'supporter.errors.purchaseFailed' => 'Покупка не прошла. Попробуйте снова.',
 			'supporter.errors.restoreFailed' => 'Не удалось связаться с магазином для восстановления покупки. Попробуйте снова.',
-			'supporter.errors.nothingToRestore' => 'Для этой учётной записи магазина покупка Supporter не найдена.',
+			'supporter.errors.nothingToRestore' => 'Для этой учётной записи магазина покупка набора тем и значков не найдена.',
 			'settings.title' => 'Настройки',
 			'settings.supportDeveloper' => 'Поддержать Plezy',
 			'settings.supportDeveloperDescription' => 'Пожертвуйте через Liberapay на развитие',
@@ -3906,6 +3909,7 @@ extension on TranslationsRu {
 			'settings.scopePlaybackSpeed' => 'Скорость воспроизведения',
 			'settings.scopeShaderPreset' => 'Предустановка шейдера',
 			'settings.scopeAspectRatio' => 'Соотношение сторон',
+			'settings.scopeZoom' => 'Масштаб',
 			'settings.scopeSyncOffsets' => 'Синхронизация аудио и субтитров',
 			'settings.playerScopeOff' => 'Не сохранять',
 			'settings.playerScopeGlobal' => 'Везде',
@@ -3918,8 +3922,8 @@ extension on TranslationsRu {
 			'themeEditor.customEmpty' => 'Ещё не создана',
 			'themeEditor.editCustom' => 'Изменить свою тему',
 			'themeEditor.editCustomDescription' => 'Выберите каждый цвет сами',
-			'themeEditor.locked' => 'Доступно с Supporter',
-			'themeEditor.savedLocked' => 'Сохранено — станет доступно с Supporter',
+			'themeEditor.locked' => 'Доступно с набором тем и значков',
+			'themeEditor.savedLocked' => 'Сохранено — станет доступно с набором тем и значков',
 			'themeEditor.title' => 'Своя тема',
 			'themeEditor.startFrom' => 'Взять за основу',
 			'themeEditor.startFromDescription' => 'Скопировать все цвета из другой темы',
@@ -3930,9 +3934,9 @@ extension on TranslationsRu {
 			'themeEditor.slots.outline' => 'Обводка',
 			'themeEditor.slots.text' => 'Текст',
 			'themeEditor.slots.textMuted' => 'Второстепенный текст',
-			'themeEditor.slots.accent' => 'Акцент',
 			_ => null,
 		} ?? switch (path) {
+			'themeEditor.slots.accent' => 'Акцент',
 			'themeEditor.opacity' => 'Непрозрачность',
 			'themeEditor.hexHint' => '#RRGGBB или #AARRGGBB',
 			'themeEditor.fromOtherThemes' => 'Из других тем',
@@ -4228,7 +4232,6 @@ extension on TranslationsRu {
 			'videoControls.rotationLockButton' => 'Блокировка поворота',
 			'videoControls.lockScreen' => 'Заблокировать экран',
 			'videoControls.screenLockButton' => 'Блокировка экрана',
-			'videoControls.longPressToUnlock' => 'Удерживайте для разблокировки',
 			'videoControls.timelineSlider' => 'Временная шкала',
 			'videoControls.volumeSlider' => 'Уровень громкости',
 			'videoControls.endsAt' => ({required Object time}) => 'Закончится в ${time}',
@@ -4257,6 +4260,7 @@ extension on TranslationsRu {
 			'videoControls.subtitleDownloaded' => 'Субтитры загружены',
 			'videoControls.subtitleDownloadedNotApplied' => 'Субтитры загружены, но их не удалось выбрать',
 			'videoControls.subtitleDownloadFailed' => 'Не удалось загрузить субтитры',
+			'videoControls.subtitleDownloadTimedOut' => 'Субтитры не появились вовремя. Возможно, загрузка не удалась',
 			'videoControls.searchLanguages' => 'Поиск языков...',
 			'videoControls.skipIntro' => 'Пропустить заставку',
 			'videoControls.skipCredits' => 'Пропустить титры',
@@ -4444,9 +4448,9 @@ extension on TranslationsRu {
 			'profiles.pinsDontMatch' => 'PIN-коды не совпадают',
 			'profiles.tokenIdentityMismatch' => 'Токен профиля Plex указал на неожиданный сервер',
 			'connections.sectionTitle' => 'Подключения',
-			'connections.addConnection' => 'Добавить подключение',
 			_ => null,
 		} ?? switch (path) {
+			'connections.addConnection' => 'Добавить подключение',
 			'connections.addConnectionSubtitleNoProfile' => 'Войдите через Plex или подключите сервер Jellyfin или Emby',
 			'connections.addConnectionSubtitleScoped' => ({required Object displayName}) => 'Добавить к ${displayName}: Plex, Jellyfin, Emby или подключение другого профиля',
 			'connections.sessionExpiredOne' => ({required Object name}) => 'Сессия истекла для ${name}',
@@ -4861,6 +4865,8 @@ extension on TranslationsRu {
 			'explore.detail.watchOn' => 'Смотреть на',
 			'explore.detail.watchTrailer' => 'Смотреть трейлер',
 			'explore.detail.openOn' => ({required Object site}) => 'Открыть на ${site}',
+			'explore.detail.trailerUnavailable' => 'Не удалось открыть трейлер на этом устройстве',
+			'explore.detail.linkUnavailable' => 'Не удалось открыть ссылку на этом устройстве',
 			'explore.detail.crew' => 'Съёмочная группа',
 			'explore.detail.ratings' => 'Рейтинги',
 			'explore.detail.schedule' => 'Расписание',
@@ -4956,11 +4962,11 @@ extension on TranslationsRu {
 			'liveTv.recordSettings.anyTime' => 'Записывать в любое время',
 			'liveTv.recordSettings.skipInLibrary' => 'Пропускать эпизоды, уже имеющиеся в библиотеке',
 			'liveTv.recordSettings.keepUpTo' => 'Сколько эпизодов хранить',
+			_ => null,
+		} ?? switch (path) {
 			'liveTv.recordSettings.keepUpToHint' => '0 — хранить все эпизоды',
 			'liveTv.startingInMinutes' => ({required Object minutes}) => 'Начало через ${minutes} мин',
 			'liveTv.dayAtTime' => ({required Object day, required Object time}) => '${day} в ${time}',
-			_ => null,
-		} ?? switch (path) {
 			'liveTv.invalidPlaybackData' => ({required Object product}) => '${product} вернул некорректные данные для воспроизведения ТВ в прямом эфире',
 			'liveTv.failedToStartChannel' => 'Не удалось запустить канал в прямом эфире',
 			'liveTv.failedToBuildStreamUrl' => 'Не удалось сформировать URL потока',
@@ -5470,11 +5476,11 @@ extension on TranslationsRu {
 			'performanceOverlay.decoderMediatekHw' => 'MediaTek, аппаратный',
 			'performanceOverlay.decoderExynosHw' => 'Exynos, аппаратный',
 			'performanceOverlay.decoderSoftware' => 'Программный',
+			_ => null,
+		} ?? switch (path) {
 			'performanceOverlay.decoderHardware' => 'Аппаратный',
 			'performanceOverlay.tunnelingActive' => 'Активно',
 			'performanceOverlay.dvRpuFailed' => ({required Object converted, required Object failures}) => '${converted} (ошибок: ${failures})',
-			_ => null,
-		} ?? switch (path) {
 			'externalPlayer.title' => 'Внешний плеер',
 			'externalPlayer.useExternalPlayer' => 'Использовать внешний плеер',
 			'externalPlayer.useExternalPlayerDescription' => 'Открывать видео в другом приложении',
