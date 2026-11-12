@@ -1,16 +1,23 @@
 package com.edde746.plezy.shared
 
+import android.app.Activity
 import android.app.ActivityManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import android.util.Log
+import androidx.core.content.FileProvider
+import io.flutter.embedding.engine.FlutterEngine
+import io.flutter.plugin.common.MethodChannel
+import java.io.File
+import java.util.concurrent.Executor
 
 /**
- * Intelligent background process memory trimmer tailored for NVIDIA Shield TV (3GB RAM)
- * and low-memory Android TV environments.
+ * Intelligent background process memory trimmer and custom OTA helper tailored
+ * for NVIDIA Shield TV (3GB RAM) and low-memory Android TV environments.
  *
  * Reclaims graphic buffers and cached userspace memory from dormant streaming apps
  * while strictly protecting user-specified essentials (Projectivy Launcher, Button Remapper,
@@ -18,6 +25,7 @@ import android.util.Log
  */
 object ShieldMemoryOptimizer {
   private const val TAG = "ShieldMemoryOptimizer"
+  private const val CHANNEL_NAME = "com.plezy/shield_custom"
 
   // Core system and OS shells that must never be touched
   private val PROTECTED_PACKAGE_PREFIXES = setOf(
@@ -62,6 +70,97 @@ object ShieldMemoryOptimizer {
     "com.paramountplus.intl",
     "com.plutotv.android"
   )
+
+  fun registerChannel(activity: Activity, flutterEngine: FlutterEngine, executor: Executor) {
+    MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL_NAME).setMethodCallHandler { call, result ->
+      when (call.method) {
+        "trimBackgroundMemory" -> {
+          executor.execute {
+            val report = trimBackgroundProcesses(activity)
+            activity.runOnUiThread {
+              result.success(report)
+            }
+          }
+        }
+        "canRequestPackageInstalls" -> {
+          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            result.success(activity.packageManager.canRequestPackageInstalls())
+          } else {
+            result.success(true)
+          }
+        }
+        "openUnknownAppSourcesSettings" -> {
+          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            try {
+              val intent = Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
+                data = Uri.parse("package:${activity.packageName}")
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+              }
+              activity.startActivity(intent)
+              result.success(true)
+            } catch (e: Exception) {
+              Log.e(TAG, "Failed to open unknown app sources settings", e)
+              result.success(false)
+            }
+          } else {
+            result.success(false)
+          }
+        }
+        "installApk" -> {
+          val filePath = call.argument<String>("filePath") ?: (call.arguments as? String)
+          if (filePath.isNullOrBlank()) {
+            result.error("INVALID_ARGUMENT", "Missing filePath", null)
+            return@setMethodCallHandler
+          }
+          try {
+            val file = File(filePath)
+            if (!file.exists()) {
+              result.error("FILE_NOT_FOUND", "APK file does not exist: $filePath", null)
+              return@setMethodCallHandler
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !activity.packageManager.canRequestPackageInstalls()) {
+              try {
+                val intent = Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
+                  data = Uri.parse("package:${activity.packageName}")
+                  addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                activity.startActivity(intent)
+              } catch (e: Exception) {
+                Log.w(TAG, "Failed to open unknown app sources settings", e)
+              }
+              result.error("PERMISSION_DENIED", "Install unknown apps permission required", null)
+              return@setMethodCallHandler
+            }
+            val uri = FileProvider.getUriForFile(
+              activity,
+              "${activity.applicationContext.packageName}.fileprovider",
+              file
+            )
+            val installIntent = Intent(Intent.ACTION_VIEW).apply {
+              setDataAndType(uri, "application/vnd.android.package-archive")
+              addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+              addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+              addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            }
+            val resolvedList = activity.packageManager.queryIntentActivities(
+              installIntent,
+              PackageManager.MATCH_DEFAULT_ONLY
+            )
+            for (resolveInfo in resolvedList) {
+              val pkg = resolveInfo.activityInfo.packageName
+              activity.grantUriPermission(pkg, uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            activity.startActivity(installIntent)
+            result.success(true)
+          } catch (e: Exception) {
+            Log.e(TAG, "Failed to launch APK installer", e)
+            result.error("INSTALL_FAILED", e.message, null)
+          }
+        }
+        else -> result.notImplemented()
+      }
+    }
+  }
 
   fun trimBackgroundProcesses(context: Context): Map<String, Any> {
     val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as? ActivityManager

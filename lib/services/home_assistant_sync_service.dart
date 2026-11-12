@@ -7,18 +7,20 @@ import 'package:http/http.dart' as http;
 import '../media/media_item.dart';
 import '../utils/app_logger.dart';
 import 'settings_service.dart';
+import 'shield_optimization_service.dart';
 
 /// Zero-latency smart home bridge for Home Assistant automations.
 ///
-/// Sends instantaneous JSON webhook events (play, pause, stop, progress)
-/// to the user's local Home Assistant instance (e.g. at 192.168.1.114)
-/// so lights, soundbars, and room automations trigger with zero delay.
+/// Sends instantaneous JSON webhook events on playback state transitions
+/// (play, pause, stop) or media item changes to the user's local Home Assistant
+/// instance (e.g. at 192.168.1.114) so lights, soundbars, and room automations
+/// trigger with zero delay and never re-trigger during steady-state playback.
 class HomeAssistantSyncService {
   HomeAssistantSyncService._internal();
   static final HomeAssistantSyncService instance = HomeAssistantSyncService._internal();
 
-  DateTime? _lastThrottledProgress;
   String? _lastReportedState;
+  String? _lastReportedMediaKey;
 
   String _normalizeWebhookUrl(String url) {
     var trimmed = url.trim();
@@ -30,7 +32,8 @@ class HomeAssistantSyncService {
     return trimmed;
   }
 
-  /// Dispatch a playback lifecycle event to Home Assistant.
+  /// Dispatch a playback lifecycle event to Home Assistant and trigger Shield
+  /// playback-start optimizations when transitioning into 'playing'.
   Future<void> reportEvent({
     required String state, // 'playing', 'paused', 'stopped'
     required MediaItem metadata,
@@ -41,6 +44,23 @@ class HomeAssistantSyncService {
     String? audioCodec,
     String? colorTransfer,
   }) async {
+    final mediaKey = metadata.globalKey;
+    final isStateChange = _lastReportedState != state;
+    final isMediaChange = _lastReportedMediaKey != mediaKey;
+
+    // Only act on genuine playback state transitions or media item changes so
+    // periodic 10s progress ticks never spam Home Assistant or soundbar scripts.
+    if (!isStateChange && !isMediaChange) {
+      return;
+    }
+
+    _lastReportedState = state;
+    _lastReportedMediaKey = mediaKey;
+
+    if (state == 'playing') {
+      unawaited(ShieldOptimizationService.instance.onPlaybackStart());
+    }
+
     final settings = SettingsService.instance;
     final enabled = settings.read(SettingsService.homeAssistantWebhookEnabled);
     if (!enabled) return;
@@ -50,19 +70,6 @@ class HomeAssistantSyncService {
     if (webhookUrl.isEmpty) return;
 
     final now = DateTime.now();
-
-    // Deduplicate repeated identical state pings within 1 second, but always
-    // allow state transitions (playing -> paused -> stopped) immediately.
-    final isStateChange = _lastReportedState != state;
-    if (!isStateChange) {
-      if (_lastThrottledProgress != null && now.difference(_lastThrottledProgress!).inSeconds < 10) {
-        return; // Throttled periodic progress update
-      }
-    }
-
-    _lastReportedState = state;
-    _lastThrottledProgress = now;
-
     final double progressPercent = duration.inMilliseconds > 0
         ? (position.inMilliseconds / duration.inMilliseconds) * 100
         : 0.0;

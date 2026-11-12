@@ -32,6 +32,7 @@ import '../media/media_hub.dart';
 import '../utils/provider_extensions.dart';
 import '../utils/plex_season_display.dart';
 import '../media/media_item.dart';
+import '../media/primary_trailer.dart';
 import '../media/episode_collection.dart';
 import '../media/media_item_types.dart';
 import '../media/media_kind.dart';
@@ -1225,17 +1226,12 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
 
   /// Build action buttons row (play, shuffle, download, mark watched)
   /// Build a metadata chip with optional leading icon or widget
-  Widget _buildMetadataChip(String text, {IconData? icon, Widget? leading, bool isQuality = false}) {
+  Widget _buildMetadataChip(String text, {IconData? icon, Widget? leading}) {
     final colorScheme = Theme.of(context).colorScheme;
     final isTv = PlatformDetector.isTV();
-    final isDolby = isQuality && (text.contains('DV') || text.contains('Dolby') || text.contains('Atmos'));
-    final isHdr = isQuality && text.contains('HDR');
-    final chipColor = isDolby
-        ? const Color(0xFFDDD6FE)
-        : (isHdr ? const Color(0xFFFEF3C7) : colorScheme.onSecondaryContainer);
     final textWidget = Text(
       text,
-      style: TextStyle(color: chipColor, fontSize: isTv ? 16 : 13, fontWeight: .w600),
+      style: TextStyle(color: colorScheme.onSecondaryContainer, fontSize: isTv ? 16 : 13, fontWeight: .w600),
     );
 
     final hasLeading = leading != null || icon != null;
@@ -1247,27 +1243,17 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
               if (leading != null)
                 leading
               else
-                AppIcon(icon!, fill: 1, color: chipColor, size: isTv ? 20 : 16),
+                AppIcon(icon!, fill: 1, color: colorScheme.onSecondaryContainer, size: isTv ? 20 : 16),
               SizedBox(width: isTv ? 6 : 4),
               textWidget,
             ],
           )
         : textWidget;
 
-    final chipBg = isDolby
-        ? const Color(0x338B5CF6)
-        : (isHdr ? const Color(0x33F59E0B) : colorScheme.secondaryContainer.withValues(alpha: 0.8));
-    final chipBorder = isDolby
-        ? Border.all(color: const Color(0x66A78BFA), width: 1)
-        : (isHdr
-            ? Border.all(color: const Color(0x66FBBF24), width: 1)
-            : (isQuality ? Border.all(color: colorScheme.outline.withValues(alpha: 0.35), width: 1) : null));
-
     return Container(
       padding: isTv ? const EdgeInsets.symmetric(horizontal: 14, vertical: 8) : _HeroChips.padding,
       decoration: BoxDecoration(
-        color: chipBg,
-        border: chipBorder,
+        color: colorScheme.secondaryContainer.withValues(alpha: 0.8),
         borderRadius: _HeroChips.radius,
       ),
       child: isTv ? content : _HeroChips.content(content),
@@ -1327,11 +1313,11 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
     // rating badge for the scores pill, the whole chip for everything else.
     final slots = <({int dropPriority, List<double> unitWidths, Widget Function(int kept) build})>[];
 
-    void addTextChip(String text, int dropPriority, {bool isQuality = false}) {
+    void addTextChip(String text, int dropPriority) {
       slots.add((
         dropPriority: dropPriority,
         unitWidths: [chipPadding + textWidth(text, chipTextStyle)],
-        build: (_) => _buildMetadataChip(text, isQuality: isQuality),
+        build: (_) => _buildMetadataChip(text),
       ));
     }
 
@@ -1341,7 +1327,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
       if (metadata.contentRating != null) addTextChip(formatContentRating(metadata.contentRating!), 2);
       if (metadata.durationMs != null) addTextChip(formatDurationTextual(metadata.durationMs!), 1);
       for (final label in buildMediaQualityLabels(metadata)) {
-        addTextChip(label, 4, isQuality: true);
+        addTextChip(label, 4);
       }
     }
     if (ratings.isNotEmpty) {
@@ -4150,12 +4136,6 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
     if (lineMetadata.durationMs != null) {
       parts.add(MetadataLineText(formatDurationTextual(lineMetadata.durationMs!), dropPriority: 1));
     }
-    for (final label in buildMediaQualityLabels(lineMetadata)) {
-      final style = label.contains('DV') || label.contains('Dolby') || label.contains('Atmos')
-          ? MetadataBadgeStyle.dolby
-          : (label.contains('HDR') ? MetadataBadgeStyle.hdr : MetadataBadgeStyle.standard);
-      parts.add(MetadataLineBadge(label, dropPriority: 3, badgeStyle: style));
-    }
     final episodeRatings = focusedEpisode == null
         ? const <MediaRatingSource>[]
         : mediaRatingsFor(_withProbedRatings(focusedEpisode));
@@ -4195,7 +4175,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
 
     for (final part in _tvDetailMetadataParts(metadata)) {
       add(switch (part) {
-        MetadataLineBadge(:final text) || MetadataLineText(:final text) || MetadataLineIconText(:final text) => text,
+        MetadataLineText(:final text) || MetadataLineIconText(:final text) => text,
         MetadataLineRatings(:final ratings) => ratingsSemanticLabel(ratings),
       });
     }
@@ -4952,38 +4932,10 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
     );
   }
 
-  /// Get the primary trailer from the extras list.
+  /// Get the primary trailer from the extras list; null hides the button.
   MediaItem? _getPrimaryTrailer() {
-    if (_extras == null || _extras!.isEmpty) return null;
-
-    // If there's a trailerKey (Plex `primaryExtraKey`), try to find that specific trailer
-    final metadata = _metadata;
-    if (metadata case PlexMediaItem(:final trailerKey?)) {
-      // Extract rating key from trailerKey (e.g., "/library/metadata/52601" -> "52601")
-      final primaryKey = trailerKey.split('/').last;
-      try {
-        return _extras!.firstWhere((extra) => extra.id == primaryKey);
-      } catch (_) {
-        // Primary key not found, fall through to find any trailer
-      }
-    }
-
-    try {
-      return _extras!.firstWhere(_isTrailerExtra);
-    } catch (_) {
-      // No trailer found, return null (button won't appear)
-      return null;
-    }
-  }
-
-  bool _isTrailerExtra(MediaItem extra) {
-    if (extra case PlexMediaItem(:final subtype?)) {
-      return subtype.toLowerCase() == 'trailer';
-    }
-    final raw = extra.raw;
-    final extraType = raw?['ExtraType'] as String?;
-    final type = raw?['Type'] as String?;
-    return extraType?.toLowerCase() == 'trailer' || type?.toLowerCase() == 'trailer';
+    final extras = _extras;
+    return extras == null ? null : primaryTrailer(_metadata, extras);
   }
 
   /// Build the cast section with locked focus pattern for D-pad navigation

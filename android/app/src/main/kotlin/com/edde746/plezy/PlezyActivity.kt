@@ -27,6 +27,7 @@ import android.view.inputmethod.InputConnection
 import android.view.inputmethod.InputMethodManager
 import android.widget.FrameLayout
 import androidx.annotation.RequiresApi
+import com.edde746.mpv.MediaCodecQuery
 import com.edde746.plezy.car.CarRestrictionsMonitor
 import com.edde746.plezy.deeplink.DeepLinkPlugin
 import com.edde746.plezy.exoplayer.ExoPlayerPlugin
@@ -34,8 +35,6 @@ import com.edde746.plezy.mpv.MpvAudioPlayerPlugin
 import com.edde746.plezy.mpv.MpvPlayerPlugin
 import com.edde746.plezy.shared.AssistiveTechnologyMonitor
 import com.edde746.plezy.shared.DeviceQuirks
-import com.edde746.plezy.shared.MediaCodecQuery
-import com.edde746.plezy.shared.ShieldMemoryOptimizer
 import com.edde746.plezy.shared.ThemeHelper
 import com.edde746.plezy.watchnext.WatchNextPlugin
 import io.flutter.embedding.android.FlutterActivity
@@ -84,8 +83,6 @@ class PlezyActivity : FlutterActivity() {
       }
     }
 
-    // Mirrors DevicePerformance._lowMemThresholdBytes (2252 MiB): nominal
-    // "2GB" devices report totalMem slightly above 2 GiB after carve-outs.
     // Mirrors DevicePerformance._lowMemThresholdBytes (3200 MiB): includes 2GB
     // boxes and 3GB Android TV devices (e.g. NVIDIA Shield TV ~2946 MiB) where
     // 4K Dolby Vision hardware decode + OSD planes need maximum native RAM headroom.
@@ -527,9 +524,13 @@ class PlezyActivity : FlutterActivity() {
 
     // Wrap the content view in a layout that intercepts DPAD key events
     // before the IME input stage, which can consume DPAD direction events
-    // from virtual remotes before they reach Flutter's key handler.
+    // from virtual remotes before they reach Flutter's key handler. Both of
+    // its paths into FlutterView also drop modifier scan codes from
+    // non-modifier keys (see withoutModifierScanCode).
     val content = findViewById<ViewGroup>(android.R.id.content)
     val wrapper = object : FrameLayout(this) {
+      override fun dispatchKeyEvent(event: KeyEvent): Boolean = super.dispatchKeyEvent(event.withoutModifierScanCode())
+
       override fun dispatchKeyEventPreIme(event: KeyEvent): Boolean {
         if (isDpadKeyCode(event.keyCode)) {
           logTextInputDiag { "preIme received ${describeKeyEvent(event)} ${describeImeState()}" }
@@ -542,7 +543,7 @@ class PlezyActivity : FlutterActivity() {
           KeyEvent.KEYCODE_DPAD_CENTER -> {
             if (shouldForwardDpadBeforeIme()) {
               logTextInputDiag { "preIme forwarding-to-Flutter-and-consuming ${describeKeyEvent(event)}" }
-              super.dispatchKeyEvent(event)
+              super.dispatchKeyEvent(event.withoutModifierScanCode())
               return true
             }
             logTextInputDiag { "preIme letting-IME-handle ${describeKeyEvent(event)}" }
@@ -706,8 +707,7 @@ class PlezyActivity : FlutterActivity() {
       manufacturer = Build.MANUFACTURER,
       isAndroidTv = isAndroidTv,
       sdkInt = Build.VERSION.SDK_INT,
-      supportsVulkan11 = isAndroidTv &&
-        packageManager.hasSystemFeature(PackageManager.FEATURE_VULKAN_HARDWARE_VERSION, vulkan11),
+      supportsVulkan11 = packageManager.hasSystemFeature(PackageManager.FEATURE_VULKAN_HARDWARE_VERSION, vulkan11),
       is64Bit = Process.is64Bit()
     )
   }
@@ -885,86 +885,6 @@ class PlezyActivity : FlutterActivity() {
         "getDeviceName" -> result.success(getDeviceName())
         "getPerformanceSignals" -> result.success(getPerformanceSignals())
         "getVideoDecodeCapabilities" -> result.success(MediaCodecQuery.hardwareVideoDecodeSupport())
-        "trimBackgroundMemory" -> {
-          exitDiagnosticsExecutor.execute {
-            val report = ShieldMemoryOptimizer.trimBackgroundProcesses(this@PlezyActivity)
-            runOnUiThread {
-              result.success(report)
-            }
-          }
-        }
-        "canRequestPackageInstalls" -> {
-          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            result.success(packageManager.canRequestPackageInstalls())
-          } else {
-            result.success(true)
-          }
-        }
-        "openUnknownAppSourcesSettings" -> {
-          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            try {
-              val intent = Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
-                data = android.net.Uri.parse("package:$packageName")
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-              }
-              startActivity(intent)
-              result.success(true)
-            } catch (e: Exception) {
-              Log.e(TAG, "Failed to open unknown app sources settings", e)
-              result.success(false)
-            }
-          } else {
-            result.success(false)
-          }
-        }
-        "installApk" -> {
-          val filePath = call.argument<String>("filePath") ?: (call.arguments as? String)
-          if (filePath.isNullOrBlank()) {
-            result.error("INVALID_ARGUMENT", "Missing filePath", null)
-            return@setMethodCallHandler
-          }
-          try {
-            val file = java.io.File(filePath)
-            if (!file.exists()) {
-              result.error("FILE_NOT_FOUND", "APK file does not exist: $filePath", null)
-              return@setMethodCallHandler
-            }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !packageManager.canRequestPackageInstalls()) {
-              try {
-                val intent = Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
-                  data = android.net.Uri.parse("package:$packageName")
-                  addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                }
-                startActivity(intent)
-              } catch (e: Exception) {
-                Log.w(TAG, "Failed to open unknown app sources settings", e)
-              }
-              result.error("PERMISSION_DENIED", "Install unknown apps permission required", null)
-              return@setMethodCallHandler
-            }
-            val uri = androidx.core.content.FileProvider.getUriForFile(
-              this,
-              "${applicationContext.packageName}.fileprovider",
-              file
-            )
-            val installIntent = Intent(Intent.ACTION_VIEW).apply {
-              setDataAndType(uri, "application/vnd.android.package-archive")
-              addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-              addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-              addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-            }
-            val resolvedList = packageManager.queryIntentActivities(installIntent, PackageManager.MATCH_DEFAULT_ONLY)
-            for (resolveInfo in resolvedList) {
-              val pkg = resolveInfo.activityInfo.packageName
-              grantUriPermission(pkg, uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            }
-            startActivity(installIntent)
-            result.success(true)
-          } catch (e: Exception) {
-            Log.e(TAG, "Failed to launch APK installer", e)
-            result.error("INSTALL_FAILED", e.message, null)
-          }
-        }
         "getBackgroundWorkSignals" -> result.success(
           BackgroundWorkClassifier.toMap(BackgroundWorkDiagnostics.read(this))
         )
@@ -1152,6 +1072,7 @@ class PlezyActivity : FlutterActivity() {
         else -> result.notImplemented()
       }
     }
+    com.edde746.plezy.shared.ShieldMemoryOptimizer.registerChannel(this, flutterEngine, exitDiagnosticsExecutor)
   }
 
   private fun handleDeviceAdjustmentCall(method: String, arguments: Any?, result: MethodChannel.Result) {

@@ -107,7 +107,11 @@ extension _PlexVideoControlsTrackMethods on _PlexVideoControlsState {
           .applyPreset(targetPreset)
           .then((_) async {
             if (!mounted) return;
-            await ScopedPlayerPrefs.write(ScopedPlayerPrefs.shaderPreset, widget.metadata, targetPreset.id);
+            if (targetPreset.isEnabled) {
+              await ScopedPlayerPrefs.write(ScopedPlayerPrefs.shaderPreset, widget.metadata, targetPreset.id);
+            }
+            // Toggling off stays session-only; the write above already synced
+            // the provider when the configured scope is global.
             shaderProvider.setCurrentPreset(targetPreset);
             if (!mounted) return;
             // ignore: no-empty-block - setState triggers rebuild to reflect shader changes

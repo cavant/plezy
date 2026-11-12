@@ -55,9 +55,7 @@ class DevicePerformance {
           _is64Bit == false ||
           _isLowRam == true ||
           (_totalMemBytes != null && _totalMemBytes! <= _lowMemThresholdBytes);
-      if (_autoReduced || (_totalMemBytes != null && _totalMemBytes! <= _fullDisplayBudgetMemBytes)) {
-        _capSkiaResourceCache();
-      }
+      if (_autoReduced) _capSkiaResourceCache();
     } on MissingPluginException {
       // Stale native build — stay on the full tier.
     } on PlatformException {
@@ -100,9 +98,9 @@ class DevicePerformance {
   /// [full] on the full tier, [Duration.zero] on the reduced tier.
   static Duration reducedDuration(Duration full) => isReduced ? Duration.zero : full;
 
-  /// ~3.2 GiB: includes 3 GB Shield-class devices (~2.88 GiB) so they cap Skia
-  /// GPU cache and hold artwork decode budget to 1.5x during 4K DoVi playback.
-  static const int _fullDisplayBudgetMemBytes = 3200 << 20;
+  /// ~2.5 GiB: below what 3 GB Shield-class devices report (~2.8 GiB) so they
+  /// keep the full display budget, above the 2.2 GiB reduced-tier threshold.
+  static const int _fullDisplayBudgetMemBytes = 2560 << 20;
 
   static double _displayBudgetFactor = 1.0;
 

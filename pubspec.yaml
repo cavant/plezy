@@ -1,7 +1,7 @@
 name: plezy
 description: "A beautiful Plex and Jellyfin client for Flutter"
 publish_to: "none"
-version: 2.25.0+160
+version: 2.26.0+160
 
 environment:
   # Dart floor stays 3.12: freezed 3.x emits `final` constructor parameters,
@@ -70,12 +70,14 @@ dependencies:
   # partials through the provider; ebdf69a resumes a download the system stops
   # (job quota, lost network) instead of reporting it canceled and deleting the
   # partial; 7c341be makes the rerun of a SAF download whose process died write
-  # to the document the dead run created instead of a "name (1)" copy. Keep the
-  # same-filesystem move/resume cleanup; no per-host TLS bypass.
+  # to the document the dead run created instead of a "name (1)" copy; afa3fe6
+  # samples desktop free space once per 1 MiB instead of per received event
+  # (#2967). Keep the same-filesystem move/resume cleanup; no per-host TLS
+  # bypass.
   background_downloader:
     git:
       url: https://github.com/edde746/background_downloader
-      ref: 7c341be73df8a6a5ddccb06124807ac250a32bc1
+      ref: afa3fe68080327cfa87e725a38961bf5d2e35307
   sentry_flutter: ^9.30.0
   auto_updater:
     git:
@@ -95,6 +97,8 @@ dependencies:
   in_app_purchase_platform_interface: ^1.4.1
   in_app_purchase_storekit: ^0.4.13+3
   openwatchparty: ^1.1.0
+  # The connector passed to openwatchparty, which logs relay connect failures.
+  web_socket: ^1.0.1
 
 dev_dependencies:
   archive: ^4.0.9
@@ -123,7 +127,6 @@ dev_dependencies:
   plugin_platform_interface: ^2.1.0
   freezed: ^3.2.5
   analyzer: 10.2.0
-  web_socket: ^1.0.1
 
 dependency_overrides:
   # background_downloader 9.6.2 requires hosted connectivity_plus; keep the

@@ -1,7 +1,3 @@
-import 'dart:io';
-
-import 'package:flutter/foundation.dart';
-
 import '../models/shader_preset.dart';
 import '../mpv/player/player.dart';
 import '../utils/app_logger.dart';
@@ -32,16 +28,8 @@ class ShaderService {
   /// The preset applied to the chain — none while NVScaler is auto-skipped.
   ShaderPreset get currentPreset => _currentPreset;
 
-  /// Overrides the platform shader-support detection in host tests.
-  @visibleForTesting
-  static bool? debugPlatformSupported;
-
-  /// GLSL shaders need mpv's gpu VOs; iOS/tvOS and macOS render through
-  /// vo=avfoundation, which has no shader stage.
-  static bool get isPlatformSupported => debugPlatformSupported ?? (!Platform.isIOS && !Platform.isMacOS);
-
   /// Check if the player is MPV (shaders are MPV-only)
-  bool get isSupported => _player.playerType == 'mpv' && isPlatformSupported;
+  bool get isSupported => _player.playerType == 'mpv';
 
   /// Apply a shader preset to the video player.
   ///
@@ -93,11 +81,8 @@ class ShaderService {
     }
   }
 
-  static bool _skipsOnHdr(ShaderPreset preset) {
-    if (!preset.isEnabled) return false;
-    if (Platform.isAndroid) return true;
-    return preset.type == ShaderPresetType.nvscaler && preset.nvscalerConfig?.autoHdrSkip == true;
-  }
+  static bool _skipsOnHdr(ShaderPreset preset) =>
+      preset.type == ShaderPresetType.nvscaler && preset.nvscalerConfig?.autoHdrSkip == true;
 
   /// Rebuild mpv's chain for [preset]: clear, append its shaders, keep
   /// ambient lighting last.
@@ -139,25 +124,9 @@ class ShaderService {
     }
   }
 
-  /// Check if the current video content is HDR or Dolby Vision.
+  /// Check if the current video content is HDR.
   Future<bool> _isHdrContent() async {
     try {
-      // Pre-open transfer hint set by Dart before loadfile (available before first frame)
-      final announcedTransfer = (await _player.getProperty('content-color-transfer'))?.toLowerCase();
-      if (announcedTransfer != null &&
-          (announcedTransfer.contains('smpte2084') ||
-              announcedTransfer.contains('pq') ||
-              announcedTransfer.contains('arib-std-b67') ||
-              announcedTransfer.contains('hlg'))) {
-        return true;
-      }
-
-      // Check Dolby Vision profile on selected video track
-      final dvProfile = await _player.getProperty('current-tracks/video/dolby-vision-profile');
-      if (dvProfile != null && dvProfile.isNotEmpty) {
-        return true;
-      }
-
       // Check video color matrix for BT.2020 (HDR indicator)
       final colormatrix = await _player.getProperty('video-params/colormatrix');
       if (colormatrix?.contains('bt.2020') == true) {
@@ -172,7 +141,7 @@ class ShaderService {
 
       // Check for HDR transfer characteristics
       final gamma = await _player.getProperty('video-params/gamma');
-      if (gamma?.contains('pq') == true || gamma?.contains('hlg') == true || gamma?.contains('smpte2084') == true) {
+      if (gamma?.contains('pq') == true || gamma?.contains('hlg') == true) {
         return true;
       }
 

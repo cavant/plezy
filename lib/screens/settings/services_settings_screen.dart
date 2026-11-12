@@ -6,15 +6,14 @@ import '../../i18n/strings.g.dart';
 import '../../models/catalog/catalog_item.dart';
 import '../../providers/seerr_account_provider.dart';
 import '../../services/discord_rpc_service.dart';
-import '../../services/home_assistant_sync_service.dart';
 import '../../services/settings_service.dart';
-import '../../utils/snackbar_helper.dart';
 import '../../widgets/app_icon.dart';
 import '../../widgets/catalog_source_logo.dart';
 import '../../widgets/focused_scroll_scaffold.dart';
 import '../../widgets/focusable_list_tile.dart';
 import '../../widgets/setting_tile.dart';
 import '../../widgets/settings_section.dart';
+import '../../widgets/shield_custom_settings_section.dart';
 import 'seerr_connect_screen.dart';
 import 'seerr_settings_screen.dart';
 import 'tracker_service_info.dart';
@@ -54,42 +53,7 @@ class ServicesSettingsScreen extends StatelessWidget {
                   ),
                 ],
               ),
-            SettingsGroup(
-              title: 'Smart Home (Home Assistant)',
-              children: [
-                SettingSwitchTile(
-                  pref: SettingsService.homeAssistantWebhookEnabled,
-                  icon: Symbols.home_rounded,
-                  title: 'Home Assistant Webhook',
-                  subtitle: 'Zero-latency play/pause/stop sync for smart lighting and automations',
-                ),
-                SettingStringTile(
-                  pref: SettingsService.homeAssistantWebhookUrl,
-                  icon: Symbols.link_rounded,
-                  title: 'Webhook URL',
-                  subtitle: 'HTTP endpoint for Home Assistant automation trigger',
-                  defaultValue: 'http://192.168.1.114/api/webhook/plezy_playback',
-                  labelText: 'Home Assistant Webhook URL',
-                ),
-                FocusableListTile(
-                  leading: const AppIcon(Symbols.bolt_rounded, fill: 1),
-                  title: const Text('Test Webhook Connection'),
-                  subtitle: const Text('Send an instant test ping to Home Assistant'),
-                  trailing: const AppIcon(Symbols.send_rounded, fill: 1),
-                  onTap: () async {
-                    showAppSnackBar(context, 'Sending test ping to Home Assistant...');
-                    final success = await HomeAssistantSyncService.instance.sendTestPing();
-                    if (context.mounted) {
-                      if (success) {
-                        showAppSnackBar(context, 'Home Assistant webhook responded successfully!');
-                      } else {
-                        showErrorSnackBar(context, 'Could not reach Home Assistant webhook URL');
-                      }
-                    }
-                  },
-                ),
-              ],
-            ),
+            const ShieldCustomSettingsSection(),
             const SizedBox(height: 24),
           ]),
         ),

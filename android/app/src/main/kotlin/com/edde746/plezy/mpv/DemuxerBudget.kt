@@ -67,8 +67,8 @@ data class DemuxerBudget(val aheadBytes: Long, val backBytes: Long) {
     private const val MIB = 1024L * 1024L
 
     /** Tier boundaries. */
-    private const val TIGHT_TIER_MAX_MB = 512
-    private const val MID_TIER_MAX_MB = 768
+    private const val TIGHT_TIER_MAX_MB = 256
+    private const val MID_TIER_MAX_MB = 512
 
     /** The tiers in ascending order; [widenedToward] climbs this ladder. */
     private val TIERS = listOf(

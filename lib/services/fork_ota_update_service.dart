@@ -14,7 +14,7 @@ import 'update_service.dart';
 class ForkOtaUpdateService {
   static const String repoOwner = "cavant";
   static const String repoName = "plezy";
-  static const MethodChannel _deviceChannel = MethodChannel('com.plezy/device');
+  static const MethodChannel _deviceChannel = MethodChannel('com.plezy/shield_custom');
 
   static String get latestReleaseApiUrl =>
       "https://api.github.com/repos/$repoOwner/$repoName/releases/latest";
