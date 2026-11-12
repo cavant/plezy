@@ -1,6 +1,9 @@
 name: Build & Sign Plezy APKs (Morphe)
 
 on:
+  schedule:
+    # Check daily at 06:00 UTC for new upstream Plezy releases
+    - cron: '0 6 * * *'
   workflow_dispatch:
     inputs:
       force_build:
@@ -29,8 +32,9 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Check upstream Plezy latest release
+      - name: Check upstream Plezy latest release & Auto-Sync
         id: upstream
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -42,15 +46,46 @@ jobs:
           echo "$UPSTREAM_BODY" > /tmp/upstream_notes.md
           echo "Latest upstream release tag: $UPSTREAM_TAG"
 
-      - name: Determine Release Tag & Check Status
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git remote add upstream https://github.com/edde746/plezy.git || true
+          git fetch upstream --tags --force
+          git fetch upstream main
+
+          MERGED_UPSTREAM="false"
+          if [ -n "$UPSTREAM_TAG" ] && git rev-parse "tags/$UPSTREAM_TAG" >/dev/null 2>&1; then
+            if ! git merge-base --is-ancestor "tags/$UPSTREAM_TAG" HEAD; then
+              echo "Merging new upstream release tag $UPSTREAM_TAG into main..."
+              if ! git merge "tags/$UPSTREAM_TAG" --no-edit -m "Auto-sync upstream release $UPSTREAM_TAG"; then
+                echo "Resolving merge conflicts by preserving upstream core files & pubspec version..."
+                git checkout --theirs pubspec.yaml pubspec.lock || true
+                git add pubspec.yaml pubspec.lock
+                git commit --no-edit -m "Auto-sync upstream release $UPSTREAM_TAG"
+              fi
+              git push origin HEAD:main
+              MERGED_UPSTREAM="true"
+            else
+              echo "Upstream tag $UPSTREAM_TAG is already an ancestor of HEAD."
+            fi
+          fi
+          echo "merged=$MERGED_UPSTREAM" >> "$GITHUB_OUTPUT"
+
+      - name: Determine Release Tag, Flutter Version & Check Status
         id: check_release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           LOCAL_VERSION=$(grep '^version:' pubspec.yaml | awk '{print $2}' | cut -d'+' -f1)
-          FORK_TAG="v$LOCAL_VERSION"
+          FORK_TAG="v${LOCAL_VERSION#v}"
           echo "tag=$FORK_TAG" >> "$GITHUB_OUTPUT"
           echo "Target Release Tag: $FORK_TAG"
+
+          FLUTTER_VER=$(grep 'FLUTTER_VERSION:' .github/workflows/build.yml | head -n 1 | cut -d'"' -f2)
+          if [ -z "$FLUTTER_VER" ]; then
+            FLUTTER_VER="3.47.1"
+          fi
+          echo "flutter_version=$FLUTTER_VER" >> "$GITHUB_OUTPUT"
+          echo "Detected upstream Flutter SDK version: $FLUTTER_VER"
 
           if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.force_build }}" = "true" ]; then
             echo "Build forced via workflow_dispatch"
@@ -58,16 +93,12 @@ jobs:
           elif [ "${{ github.event_name }}" = "push" ]; then
             echo "Build triggered via push to main"
             echo "should_build=true" >> "$GITHUB_OUTPUT"
+          elif [ "${{ steps.upstream.outputs.merged }}" = "true" ]; then
+            echo "Merged new upstream release into main. Building $FORK_TAG..."
+            echo "should_build=true" >> "$GITHUB_OUTPUT"
           elif gh release view "$FORK_TAG" &>/dev/null; then
-            echo "Release $FORK_TAG already exists in this fork. Checking upstream..."
-            UPSTREAM_TAG="${{ steps.upstream.outputs.tag }}"
-            if [ -n "$UPSTREAM_TAG" ] && [ "$UPSTREAM_TAG" != "$LOCAL_VERSION" ] && [ "$UPSTREAM_TAG" != "${LOCAL_VERSION#v}" ]; then
-              echo "Upstream has newer release $UPSTREAM_TAG. Will build."
-              echo "should_build=true" >> "$GITHUB_OUTPUT"
-            else
-              echo "Release is up to date. Skipping."
-              echo "should_build=false" >> "$GITHUB_OUTPUT"
-            fi
+            echo "Release $FORK_TAG already exists in this fork and upstream is synced. Skipping."
+            echo "should_build=false" >> "$GITHUB_OUTPUT"
           else
             echo "Release $FORK_TAG does not exist yet. Building."
             echo "should_build=true" >> "$GITHUB_OUTPUT"
@@ -84,7 +115,7 @@ jobs:
         if: steps.check_release.outputs.should_build == 'true'
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.47.1'
+          flutter-version: ${{ steps.check_release.outputs.flutter_version }}
           channel: 'stable'
           cache: true
 
@@ -152,13 +183,10 @@ jobs:
               --notes "Custom build of Plezy $TAG (based on upstream $UPSTREAM_TAG) signed with Morphe.keystore for Shield TV in-place OTA updates.
               
             ### Custom Fork Enhancements:
-            - **Plex Classic Theme:** Iconic Obsidian Slate with signature Plex Amber Gold accent (\`#E5A00D\`).
-            - **Cinema Crimson Theme:** Deep cinema dark with vivid Netflix Red accent (\`#E50914\`).
-            - **Moonlight Theme:** Deep OLED night slate (\`#0B132B\` / \`#162234\`) with Moonlight cyan accent (\`#38BDF8\`).
-            - **Material You Dynamic Theme:** Ambient tonal palettes (\`#101418\` / \`#818CF8\`).
-            - **Media Quality Format Badges:** Infuse/Plex-style pill badges on TV and mobile detail screens (4K, Dolby Vision, HDR10, Atmos, DTS-HD).
-            - **Pre-Configured Automation:** Pre-seeded with Plex direct connect, Overseerr auto-auth, and Home Assistant webhook integration.
-            - **In-Place Shield TV OTA:** Automatic in-app update checks directly downloading signed APKs.
+            - **NVIDIA Shield TV Optimizations Toggle:** Dedicated toggle in Settings > Services applying 4K DoVi/HDR10 frame-queue limits, 0.5x OSD plane resolution, 48MB Skia cache cap, shader bypass, and automatic background RAM trimming.
+            - **Home Assistant Webhook Sync:** State-change deduplicated play/pause/stop webhook sync for smart lighting and soundbar automations.
+            - **Custom Themes:** Plex Classic Amber, Cinema Crimson, Moonlight, and Material You Dynamic themes.
+            - **In-Place Shield TV OTA:** Automatic in-app update checks directly downloading and installing Morphe-signed APKs.
             
             ### Upstream Release Notes:
             $NOTES"
